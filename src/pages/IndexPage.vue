@@ -11,7 +11,9 @@
       <h1 class="text-h3 text-bold q-mb-sm">Cristhian Peverelli</h1>
 
       <h2 class="text-subtitle1 text-grey-4 q-mb-md">
-        Software Developer · IT Technician · Web Designer
+        <span class="animated-word" :style="{ minWidth: '140px', display: 'inline-block' }">
+          {{ currentWord }}
+        </span>
       </h2>
 
       <p class="text-body1 text-grey-4 q-mb-xl">Simplicity is the ultimate sophistication</p>
@@ -61,6 +63,45 @@ function scrollToPortfolio() {
   if (el) {
     scroll.setVerticalScrollPosition(window, el.offsetTop - 100, 600)
   }
+}
+</script>
+
+<script>
+export default {
+  data() {
+    return {
+      words: ['a Developer', 'an IT Technician', 'a Student'],
+      currentWordIndex: 0,
+      currentTypedWord: '',
+      wordIndex: 0,
+      timer: null,
+    }
+  },
+  computed: {
+    currentWord() {
+      return this.currentTypedWord
+    },
+  },
+  created() {
+    this.startAnimation()
+  },
+  unmounted() {
+    clearInterval(this.timer)
+  },
+  methods: {
+    startAnimation() {
+      this.timer = setInterval(() => {
+        if (this.wordIndex < this.words[this.currentWordIndex].length) {
+          this.currentTypedWord += this.words[this.currentWordIndex][this.wordIndex]
+          this.wordIndex++
+        } else {
+          this.currentTypedWord = ' '
+          this.wordIndex = 0
+          this.currentWordIndex = (this.currentWordIndex + 1) % this.words.length
+        }
+      }, 200)
+    },
+  },
 }
 </script>
 
