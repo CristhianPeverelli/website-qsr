@@ -8,9 +8,7 @@
       <q-toolbar class="q-px-md">
         <q-toolbar-title class="text-subtitle2">Cristhian Peverelli</q-toolbar-title>
 
-        <q-btn flat label="Home" to="/" class="q-mx-sm" />
-        <q-btn flat label="About Me" to="/about" class="q-mx-sm" />
-        <q-btn flat label="GitHub" href="https://github.com/CristhianPeverelli" target="_blank" />
+        <q-btn flat label="Up" to="/" class="q-mx-sm" />
       </q-toolbar>
     </q-header>
 

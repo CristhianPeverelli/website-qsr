@@ -11,21 +11,17 @@
       <h1 class="text-h3 text-bold q-mb-sm">Cristhian Peverelli</h1>
 
       <h2 class="text-subtitle1 text-grey-4 q-mb-md">
-        Software Developer · Web Engineer · Creative Technologist
+        Software Developer · IT Technician · Web Designer
       </h2>
 
-      <p class="text-body1 text-grey-4 q-mb-xl">
-        Sviluppo soluzioni web moderne, accessibili e performanti. Amo scrivere codice elegante e
-        progettare interfacce pulite.
-      </p>
+      <p class="text-body1 text-grey-4 q-mb-xl">Simplicity is the ultimate sophistication</p>
 
       <div class="q-gutter-md q-mb-xl">
-        <q-btn label="Contattami" color="primary" rounded class="cta" @click="scrollToFab" />
+        <q-btn label="Contact Me" color="primary" rounded class="cta" @click="scrollToFab" />
         <q-btn
-          label="Guarda i progetti"
-          flat
+          label="View Portfolio"
           rounded
-          color="white"
+          color="secondary"
           class="cta"
           @click="scrollToPortfolio"
         />
