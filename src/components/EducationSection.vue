@@ -27,7 +27,7 @@
 
           <li class="education-item">
             <span class="degree">
-              High School Diploma @ <strong>ITIS Emilio Alessandrini, Vittuone</strong>
+              High School CS Diploma @ <strong>ITIS Emilio Alessandrini, Vittuone</strong>
             </span>
             <span class="period">Sep 2016 - Jun 2021</span>
           </li>
