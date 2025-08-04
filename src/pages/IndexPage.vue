@@ -2,9 +2,9 @@
   <q-page :class="pageClasses">
     <div :class="heroWrapperClasses">
       <DotLottieVue
-        style="height: 500px; width: 500px"
         autoplay
         loop
+        class="main-gif"
         src="https://lottie.host/a0307ab9-ca6a-436f-afa8-2f9c49336ea1/CCOte4fTtR.lottie"
       />
 
@@ -132,5 +132,17 @@ export default {
 .cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+}
+
+.main-gif {
+  width: 550px;
+  height: 550px;
+}
+
+@media (max-width: 600px) {
+  .main-gif {
+    width: 300px;
+    height: 300px;
+  }
 }
 </style>

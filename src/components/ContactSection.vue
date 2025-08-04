@@ -61,10 +61,30 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   display: flex;
   align-items: center;
   justify-content: center;
-
   text-align: left;
   flex-direction: row; /* for large screens */
   flex-wrap: nowrap;
+  gap: 24px;
+}
+
+@media (max-width: 600px) {
+  .content-wrapper {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .contact-list {
+    text-align: center;
+  }
+
+  .contact-list li {
+    justify-content: center;
+  }
+
+  .contact-list li a {
+    margin-left: 8px;
+  }
 }
 
 .section-title {
