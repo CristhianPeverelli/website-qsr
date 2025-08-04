@@ -1,5 +1,5 @@
 <template>
-  <section id="about-section" class="section-container bg-dark text-white">
+  <section id="about-section" class="section-container">
     <h2 class="section-title">About Me</h2>
     <hr class="divider" />
 
@@ -32,7 +32,6 @@
 .section-title {
   font-size: 2.25rem;
   font-weight: 700;
-  color: #e0e0e0;
   margin-bottom: 12px;
 }
 
@@ -60,7 +59,6 @@
 }
 
 .section-text {
-  color: #b0b0b0;
   font-size: 1.125rem;
   line-height: 1.6;
   margin-bottom: 36px;

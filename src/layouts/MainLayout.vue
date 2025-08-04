@@ -1,62 +1,19 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header
-      class="bg-white text-black shadow-2 header-transition"
-      elevated
-      :class="{ 'header-visible': showToolbar }"
-    >
-      <q-toolbar class="q-px-md">
-        <q-toolbar-title class="text-subtitle2">Cristhian Peverelli</q-toolbar-title>
-
-        <q-btn flat label="Up" to="/" class="q-mx-sm" />
-      </q-toolbar>
-    </q-header>
-
+    <main-header />
     <q-page-container>
+      <theme-button />
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-
-const showToolbar = ref(false)
-
-function handleScroll() {
-  showToolbar.value = window.scrollY > 600
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
+import themeButton from 'components/ThemeButton.vue'
+import MainHeader from 'components/MainHeader.vue'
 </script>
 
 <style scoped>
-.header-transition {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-100%);
-}
-
-.header-visible {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
 .q-page-container {
   padding-top: 0 !important;
 }

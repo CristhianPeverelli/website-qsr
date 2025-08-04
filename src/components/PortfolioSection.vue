@@ -1,5 +1,5 @@
 <template>
-  <section id="portfolio-section" class="section-container bg-dark text-white">
+  <section id="portfolio-section" class="section-container">
     <h2 class="text-h4 text-bold q-mb-lg text-center">My Projects</h2>
 
     <q-layout-grid class="project-grid" cols="12" cols-sm="6" cols-md="4" cols-lg="3" gutter="24px">

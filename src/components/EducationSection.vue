@@ -1,5 +1,5 @@
 <template>
-  <section id="education-section" class="section-container text-white">
+  <section id="education-section" class="section-container">
     <h2 class="section-title">Education</h2>
     <hr class="divider" />
 
@@ -53,7 +53,6 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 .section-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #e0e0e0;
   margin-bottom: 16px;
 }
 
@@ -89,7 +88,6 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 }
 
 .section-intro {
-  color: #b0b0b0;
   font-size: 1.125rem;
   margin-bottom: 36px;
   line-height: 1.5;
@@ -105,7 +103,6 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   position: relative;
   padding-left: 32px;
   margin-bottom: 28px;
-  color: #d0d0d0;
   font-size: 1.125rem;
   line-height: 1.4;
 }
@@ -116,19 +113,16 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   position: absolute;
   left: 0;
   top: 0;
-  color: #00b8d9;
   font-size: 1.5rem;
   line-height: 1;
 }
 
 .degree {
   font-weight: 600;
-  color: #e0e0e0;
 }
 
 .period {
   display: block;
-  color: #80cfe9;
   font-size: 0.9rem;
   margin-top: 4px;
   font-style: italic;

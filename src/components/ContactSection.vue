@@ -1,5 +1,5 @@
 <template>
-  <section id="contact-section" class="section-container bg-dark text-white">
+  <section id="contact-section" class="section-container">
     <div class="content-wrapper">
       <div class="animation-wrapper">
         <DotLottieVue
@@ -48,7 +48,6 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   margin: 0 auto;
   padding: 80px 24px;
   text-align: center;
-  background-color: #121212;
   border-radius: 8px;
 }
 
@@ -71,13 +70,11 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 .section-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #e0e0e0;
   margin-bottom: 8px;
 }
 
 .section-subtitle {
   font-size: 1.1rem;
-  color: #a0a0a0;
   margin-bottom: 32px;
 }
 
@@ -93,7 +90,6 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  color: #c0c0c0;
   font-size: 1.125rem;
 }
 
