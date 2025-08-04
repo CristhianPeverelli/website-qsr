@@ -17,6 +17,9 @@
   "dependencies": {
     "@lottiefiles/dotlottie-vue": "^0.8.1",
     "@quasar/extras": "^1.16.4",
+    "@vueuse/core": "^13.6.0",
+    "@vueuse/motion": "^3.0.3",
+    "motion-v": "^1.7.0",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",
     "vue-router": "^4.0.0"

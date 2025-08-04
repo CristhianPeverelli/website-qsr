@@ -1,19 +1,18 @@
 <template>
   <q-page :class="pageClasses">
     <div :class="heroWrapperClasses">
-      <DotLottieVue
+      <!--<DotLottieVue
         autoplay
         loop
         class="main-gif"
         src="https://lottie.host/a0307ab9-ca6a-436f-afa8-2f9c49336ea1/CCOte4fTtR.lottie"
-      />
+      />-->
+      <AnimationImage></AnimationImage>
 
       <h1 class="text-h3 text-bold q-mb-sm">Cristhian Peverelli</h1>
 
       <h2 :class="subtitleClasses">
-        <span class="animated-word" :style="{ minWidth: '140px', display: 'inline-block' }">
-          {{ currentWord }}
-        </span>
+        <Typewriter />
       </h2>
 
       <p :class="descriptionClasses">Simplicity is the ultimate sophistication</p>
@@ -47,7 +46,9 @@
 <script setup>
 import { useQuasar, scroll } from 'quasar'
 import { computed } from 'vue'
-import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
+//import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
+import AnimationImage from 'src/components/AnimationImage.vue'
+import Typewriter from 'components/Typewriter.vue'
 import AboutSection from 'components/AboutSection.vue'
 import EducationSection from 'components/EducationSection.vue'
 import PortfolioSection from 'components/PortfolioSection.vue'
@@ -79,45 +80,6 @@ function scrollToPortfolio() {
   if (el) {
     scroll.setVerticalScrollPosition(window, el.offsetTop - 100, 600)
   }
-}
-</script>
-
-<script>
-export default {
-  data() {
-    return {
-      words: ['a Developer', 'an IT Technician', 'a Student'],
-      currentWordIndex: 0,
-      currentTypedWord: '',
-      wordIndex: 0,
-      timer: null,
-    }
-  },
-  computed: {
-    currentWord() {
-      return this.currentTypedWord
-    },
-  },
-  created() {
-    this.startAnimation()
-  },
-  unmounted() {
-    clearInterval(this.timer)
-  },
-  methods: {
-    startAnimation() {
-      this.timer = setInterval(() => {
-        if (this.wordIndex < this.words[this.currentWordIndex].length) {
-          this.currentTypedWord += this.words[this.currentWordIndex][this.wordIndex]
-          this.wordIndex++
-        } else {
-          this.currentTypedWord = ' '
-          this.wordIndex = 0
-          this.currentWordIndex = (this.currentWordIndex + 1) % this.words.length
-        }
-      }, 200)
-    },
-  },
 }
 </script>
 
