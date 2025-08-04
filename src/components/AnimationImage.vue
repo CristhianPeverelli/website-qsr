@@ -1,5 +1,5 @@
 <template>
-  <div class="container" @mousedown="onMouseDown">
+  <div class="container" @mousedown="onStart" @touchstart="onStart">
     <div class="cube" ref="cubeRef">
       <div class="side front" />
       <div class="side back" />
@@ -10,58 +10,68 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAnimationFrame } from 'motion-v'
 
 const cubeRef = ref(null)
 
-// Rotazione automatica
 const autoX = ref(0)
 const autoY = ref(0)
 
-// Stato di interazione
 const isDragging = ref(false)
-const lastMouse = ref({ x: 0, y: 0 })
+const lastPos = ref({ x: 0, y: 0 })
 const dragRotation = ref({ x: 0, y: 0 })
 
-// Eventi drag
-function onMouseDown(e) {
-  isDragging.value = true
-  lastMouse.value = { x: e.clientX, y: e.clientY }
+function getEventPosition(e) {
+  if (e.touches && e.touches.length > 0) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }
+  return { x: e.clientX, y: e.clientY }
 }
 
-function onMouseMove(e) {
-  if (!isDragging.value) return
+function onStart(e) {
+  isDragging.value = true
+  lastPos.value = getEventPosition(e)
+}
 
-  const dx = e.clientX - lastMouse.value.x
-  const dy = e.clientY - lastMouse.value.y
+function onMove(e) {
+  if (!isDragging.value) return
+  const pos = getEventPosition(e)
+  const dx = pos.x - lastPos.value.x
+  const dy = pos.y - lastPos.value.y
 
   dragRotation.value.x += dy * 0.3
   dragRotation.value.y += dx * 0.3
 
-  lastMouse.value = { x: e.clientX, y: e.clientY }
+  lastPos.value = pos
+
+  if (e.cancelable) e.preventDefault()
 }
 
-function onMouseUp() {
+function onEnd() {
   isDragging.value = false
 }
 
 onMounted(() => {
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', onMouseUp)
+  window.addEventListener('mousemove', onMove, { passive: false })
+  window.addEventListener('mouseup', onEnd)
+  window.addEventListener('touchmove', onMove, { passive: false })
+  window.addEventListener('touchend', onEnd)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', onMouseMove)
-  window.removeEventListener('mouseup', onMouseUp)
+  window.removeEventListener('mousemove', onMove)
+  window.removeEventListener('mouseup', onEnd)
+  window.removeEventListener('touchmove', onMove)
+  window.removeEventListener('touchend', onEnd)
 })
 
 useAnimationFrame((t) => {
   if (!cubeRef.value) return
 
   if (!isDragging.value) {
-    // continua rotazione automatica solo se non si trascina
     autoX.value = Math.sin(t / 900) * 30
     autoY.value = Math.cos(t / 1000) * 30
   }
