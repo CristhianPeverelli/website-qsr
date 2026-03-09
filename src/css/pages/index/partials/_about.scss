@@ -1,0 +1,25 @@
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.about-card p {
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin: 0;
+}
+
+.about-card p + p {
+  margin-top: 14px;
+}
+
+.card-title {
+  margin: 0 0 12px;
+  font-family: var(--font-title);
+  font-size: 1.18rem;
+}
+
+.service-title {
+  font-weight: 700;
+}

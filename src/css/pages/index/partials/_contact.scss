@@ -1,0 +1,38 @@
+.contact-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 16px;
+}
+
+.contact-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.contact-item:hover {
+  color: var(--accent-1);
+}
+
+.contact-actions {
+  margin-top: 16px;
+}
+
+.contact-form {
+  display: grid;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

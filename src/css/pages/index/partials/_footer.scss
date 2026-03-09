@@ -1,0 +1,16 @@
+.portfolio-footer {
+  position: relative;
+  z-index: 1;
+  padding: 28px 18px 34px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

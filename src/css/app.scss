@@ -1,1 +1,129 @@
-// app global css in SCSS form
+:root {
+  --font-title: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body: 'Manrope', 'Segoe UI', sans-serif;
+
+  --bg-primary: #edf3fb;
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --surface-card: #ffffff;
+  --surface-soft: #eef4ff;
+  --text-primary: #0a1528;
+  --text-secondary: #293a53;
+  --text-muted: #5e7593;
+  --border-soft: rgba(15, 23, 42, 0.13);
+  --accent-1: #0f62fe;
+  --accent-2: #00a0ff;
+  --active-pill-bg: rgba(15, 98, 254, 0.14);
+}
+
+body.body--dark {
+  --bg-primary: #071325;
+  --surface-elevated: rgba(7, 22, 43, 0.86);
+  --surface-card: #0d213d;
+  --surface-soft: #172f50;
+  --text-primary: #e4edf8;
+  --text-secondary: #c5d3e8;
+  --text-muted: #8ca4c3;
+  --border-soft: rgba(148, 163, 184, 0.24);
+  --accent-1: #56a8ff;
+  --accent-2: #2fd9a8;
+  --active-pill-bg: rgba(86, 168, 255, 0.2);
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(circle at 7% 13%, rgba(29, 155, 240, 0.11), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(47, 217, 168, 0.11), transparent 29%),
+    var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.55;
+  transition:
+    background 0.35s ease,
+    color 0.35s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-title);
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(15, 98, 254, 0.22);
+}
+
+.surface-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 18px 34px rgba(2, 10, 26, 0.08);
+  transition:
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
+}
+
+body.body--dark .surface-card {
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.36);
+}
+
+.q-btn {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.q-field--outlined .q-field__control {
+  border-radius: 12px;
+}
+
+.q-field--outlined .q-field__native,
+.q-field--outlined .q-field__input {
+  color: var(--text-primary);
+}
+
+.q-field__label {
+  color: var(--text-muted);
+}
+
+body.body--light .q-field--outlined .q-field__control {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body.body--dark .q-field--outlined .q-field__control {
+  background: rgba(11, 30, 52, 0.9);
+}
+
+body.body--light .q-chip.bg-grey-3,
+body.body--light .q-chip.bg-grey-4 {
+  color: #1e293b;
+}
+
+body.body--dark .q-chip.bg-grey-3,
+body.body--dark .q-chip.bg-grey-4 {
+  color: #0f172a;
+}
+
+.q-item__label--caption {
+  color: var(--text-muted);
+  opacity: 0.95;
+}
+
+.q-tab {
+  color: var(--text-muted);
+}
+
+.q-tab.q-tab--active {
+  color: var(--text-primary);
+}
+
+.q-separator {
+  background: var(--border-soft);
+}
+
+

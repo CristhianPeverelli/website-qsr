@@ -1,0 +1,104 @@
+.portfolio-page {
+  position: relative;
+  padding-top: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.portfolio-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 9% 10%, rgba(15, 98, 254, 0.1), transparent 34%),
+    radial-gradient(circle at 86% 16%, rgba(20, 184, 166, 0.12), transparent 30%),
+    radial-gradient(circle at 52% 118%, rgba(59, 130, 246, 0.07), transparent 40%);
+}
+
+.portfolio-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at 46% 12%, black 16%, transparent 68%);
+  opacity: 0.45;
+}
+
+section[data-section] {
+  scroll-margin-top: 90px;
+}
+
+.bg-orb {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(46px);
+  opacity: 0.26;
+  pointer-events: none;
+  animation: orb-drift 16s ease-in-out infinite alternate;
+}
+
+.orb-a {
+  width: 430px;
+  height: 430px;
+  top: 36px;
+  right: -160px;
+  background: #50b2ff;
+}
+
+.orb-b {
+  width: 350px;
+  height: 350px;
+  top: 760px;
+  left: -140px;
+  background: #36d399;
+  animation-delay: 2.8s;
+}
+
+.portfolio-section {
+  position: relative;
+  z-index: 1;
+  padding: clamp(56px, 7vw, 96px) 18px;
+}
+
+.section-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.section-header {
+  margin-bottom: 24px;
+}
+
+.section-kicker {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--font-title);
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+  line-height: 1.2;
+  margin: 0;
+}
+
+@keyframes orb-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(14px, -20px, 0) scale(1.05);
+  }
+}
