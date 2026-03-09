@@ -30,12 +30,13 @@
               class="pill-btn"
               @click="scrollTo('contact')"
             />
-          </div>
-
-          <div class="hero-meta">
-            <q-chip color="secondary" text-color="white" icon="location_on" square>
-              Milan, Italy
-            </q-chip>
+            <q-btn
+              unelevated
+              no-caps
+              color="secondary"
+              label="My last work"
+              class="pill-btn"
+            />
           </div>
 
           <div class="quick-links">
