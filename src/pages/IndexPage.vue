@@ -36,6 +36,7 @@
               color="secondary"
               label="My last work"
               class="pill-btn"
+              @click="openLastWorkPage"
             />
           </div>
 
@@ -401,7 +402,10 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useMeta } from 'quasar'
+import { useRouter } from 'vue-router'
 import InteractiveIcosahedron from 'src/components/InteractiveIcosahedron.vue'
+
+const router = useRouter()
 
 useMeta(() => ({
   title: 'Cristhian Peverelli',
@@ -603,6 +607,10 @@ function scrollTo(id) {
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+function openLastWorkPage() {
+  router.push('/my-last-work')
 }
 
 function onWindowScroll() {
