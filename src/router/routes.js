@@ -4,7 +4,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'my-last-work', component: () => import('pages/MyLastWorkPage.vue') },
+      { path: 'labyrinthus', component: () => import('pages/LabyrinthusPage.vue') },
+      { path: 'my-last-work', redirect: '/labyrinthus' },
     ],
   },
 

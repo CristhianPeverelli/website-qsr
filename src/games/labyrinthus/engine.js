@@ -7,6 +7,7 @@ import {
 import { circlesOverlap, detectDoorTransition, isProjectileBlocked, moveCircle } from './collision'
 import { DungeonGraph, roomTypeLabel } from './dungeon'
 import { createEnemy, createLoot, createPlayer, createProjectile, resetEntityIds } from './entities'
+import { createLabyrinthusSprites } from './sprites'
 import { applyUpgradeById, rollRelic, rollUpgradeChoices } from './upgrades'
 import {
   circleIntersectsRect,
@@ -38,11 +39,47 @@ function scoreFormula(stats) {
   )
 }
 
+function toRgba(hexColor, alpha) {
+  if (!hexColor || hexColor[0] !== '#') {
+    return `rgba(255,255,255,${alpha})`
+  }
+
+  const hex = hexColor.replace('#', '')
+  const normalized = hex.length === 3 ? hex.split('').map((char) => `${char}${char}`).join('') : hex
+  const value = Number.parseInt(normalized, 16)
+
+  if (!Number.isFinite(value)) {
+    return `rgba(255,255,255,${alpha})`
+  }
+
+  const r = (value >> 16) & 255
+  const g = (value >> 8) & 255
+  const b = value & 255
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+function roomTint(roomType) {
+  if (roomType === 'treasure') {
+    return 'rgba(243, 191, 88, 0.13)'
+  }
+  if (roomType === 'elite') {
+    return 'rgba(255, 112, 112, 0.13)'
+  }
+  if (roomType === 'start') {
+    return 'rgba(78, 226, 188, 0.09)'
+  }
+  return 'rgba(82, 144, 255, 0.07)'
+}
+
 export class LabyrinthusEngine {
   constructor({ canvas, onStateChange = () => {} }) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
+    if (this.ctx) {
+      this.ctx.imageSmoothingEnabled = false
+    }
     this.onStateChange = onStateChange
+    this.sprites = createLabyrinthusSprites()
 
     this.scene = 'menu'
     this.gameOverSummary = null
@@ -83,7 +120,11 @@ export class LabyrinthusEngine {
     this.lastFrame = 0
     this.emitInterval = 0
     this.time = 0
+    this.runSeed = null
     this.runRng = createRng(Date.now())
+    this.particles = []
+    this.cameraShake = 0
+    this.damageFlash = 0
 
     this.handleKeydown = this.handleKeydown.bind(this)
     this.handleKeyup = this.handleKeyup.bind(this)
@@ -132,6 +173,7 @@ export class LabyrinthusEngine {
 
   startRun() {
     const seed = Date.now()
+    this.runSeed = seed
     this.runRng = createRng(seed)
     resetEntityIds()
 
@@ -141,6 +183,7 @@ export class LabyrinthusEngine {
     this.enemies = []
     this.loot = []
     this.projectiles = []
+    this.particles = []
     this.pendingUpgrades = []
     this.recentUpgrades = []
     this.message = 'Enter the labyrinth and survive.'
@@ -149,6 +192,8 @@ export class LabyrinthusEngine {
     this.transitionCooldown = 0.25
     this.scene = 'playing'
     this.time = 0
+    this.cameraShake = 0
+    this.damageFlash = 0
 
     this.stats = {
       roomsCleared: 0,
@@ -205,6 +250,20 @@ export class LabyrinthusEngine {
     this.player.hp = Math.min(this.player.maxHp, this.player.hp + healAmount)
     this.stats.score += 14
     this.setMessage(`Potion used +${healAmount} HP`, 1.2)
+    this.spawnParticles({
+      x: this.player.x,
+      y: this.player.y,
+      count: 18,
+      color: '#ff8ac8',
+      speedMin: 55,
+      speedMax: 180,
+      sizeMin: 1.5,
+      sizeMax: 3.8,
+      lifeMin: 0.16,
+      lifeMax: 0.42,
+      gravity: -20,
+      drag: 0.9,
+    })
     return true
   }
 
@@ -271,6 +330,10 @@ export class LabyrinthusEngine {
         this.message = ''
       }
     }
+
+    this.cameraShake = Math.max(0, this.cameraShake - deltaTime * 2.8)
+    this.damageFlash = Math.max(0, this.damageFlash - deltaTime * 2.2)
+    this.updateParticles(deltaTime)
 
     if (this.scene === 'playing' && this.player && this.currentRoom) {
       this.updatePlaying(deltaTime)
@@ -358,13 +421,94 @@ export class LabyrinthusEngine {
     return normalize(x, y)
   }
 
+  addCameraShake(amount = 0.24) {
+    this.cameraShake = Math.min(1.45, this.cameraShake + amount)
+  }
+
+  spawnParticles({
+    x,
+    y,
+    count = 8,
+    color = '#ffffff',
+    speedMin = 60,
+    speedMax = 190,
+    sizeMin = 1.8,
+    sizeMax = 4.2,
+    lifeMin = 0.16,
+    lifeMax = 0.44,
+    angle = 0,
+    spread = Math.PI * 2,
+    gravity = 0,
+    drag = 0.92,
+  }) {
+    for (let index = 0; index < count; index += 1) {
+      const theta = angle + (Math.random() - 0.5) * spread
+      const speed = randRange(speedMin, speedMax)
+      const life = randRange(lifeMin, lifeMax)
+      this.particles.push({
+        x,
+        y,
+        velocityX: Math.cos(theta) * speed,
+        velocityY: Math.sin(theta) * speed,
+        radius: randRange(sizeMin, sizeMax),
+        life,
+        maxLife: life,
+        color,
+        gravity,
+        drag,
+      })
+    }
+
+    if (this.particles.length > 320) {
+      this.particles.splice(0, this.particles.length - 320)
+    }
+  }
+
+  spawnPlayerSlashFx() {
+    const angle = Math.atan2(this.player.facingY, this.player.facingX)
+    const centerX = this.player.x + this.player.facingX * (this.player.radius + 10)
+    const centerY = this.player.y + this.player.facingY * (this.player.radius + 10)
+    this.spawnParticles({
+      x: centerX,
+      y: centerY,
+      count: 12,
+      color: '#8dd8ff',
+      speedMin: 80,
+      speedMax: 230,
+      sizeMin: 1.6,
+      sizeMax: 3.8,
+      lifeMin: 0.14,
+      lifeMax: 0.33,
+      angle,
+      spread: Math.PI * 0.8,
+      drag: 0.9,
+    })
+  }
+
+  updateParticles(deltaTime) {
+    for (let index = this.particles.length - 1; index >= 0; index -= 1) {
+      const particle = this.particles[index]
+      particle.velocityX *= Math.pow(particle.drag, deltaTime * 60)
+      particle.velocityY *= Math.pow(particle.drag, deltaTime * 60)
+      particle.velocityY += particle.gravity * deltaTime
+      particle.x += particle.velocityX * deltaTime
+      particle.y += particle.velocityY * deltaTime
+      particle.life -= deltaTime
+
+      if (particle.life <= 0) {
+        this.particles.splice(index, 1)
+      }
+    }
+  }
+
   performPlayerAttack() {
     if (this.player.attackCooldownLeft > 0) {
       return false
     }
 
     this.player.attackCooldownLeft = this.player.attackCooldown
-    this.player.attackFx = 0.14
+    this.player.attackFx = 0.17
+    this.spawnPlayerSlashFx()
 
     const hitIds = new Set()
     for (let index = this.enemies.length - 1; index >= 0; index -= 1) {
@@ -387,6 +531,18 @@ export class LabyrinthusEngine {
       enemy.hp -= rawDamage
       enemy.hitFx = 0.12
       hitIds.add(enemy.id)
+      this.spawnParticles({
+        x: enemy.x,
+        y: enemy.y,
+        count: critical ? 14 : 8,
+        color: critical ? '#fff8af' : enemy.color,
+        speedMin: 70,
+        speedMax: critical ? 250 : 170,
+        sizeMin: 1.6,
+        sizeMax: critical ? 4.8 : 3.6,
+        lifeMin: 0.14,
+        lifeMax: 0.35,
+      })
 
       if (enemy.hp <= 0) {
         this.defeatEnemy(index)
@@ -395,6 +551,9 @@ export class LabyrinthusEngine {
 
     if (hitIds.size > 0) {
       this.stats.score += hitIds.size * 6
+      this.addCameraShake(0.18)
+    } else {
+      this.addCameraShake(0.05)
     }
 
     this.syncRoomEntities()
@@ -410,6 +569,21 @@ export class LabyrinthusEngine {
     this.enemies.splice(enemyIndex, 1)
     this.stats.kills += 1
     this.stats.score += 20 + Math.floor(this.stats.roomsCleared * 0.8)
+    this.addCameraShake(enemy.type === 'tank' ? 0.28 : 0.14)
+    this.spawnParticles({
+      x: enemy.x,
+      y: enemy.y,
+      count: enemy.type === 'tank' ? 28 : 16,
+      color: enemy.color,
+      speedMin: 70,
+      speedMax: enemy.type === 'tank' ? 260 : 200,
+      sizeMin: 1.8,
+      sizeMax: enemy.type === 'tank' ? 5 : 4,
+      lifeMin: 0.16,
+      lifeMax: 0.48,
+      gravity: 35,
+      drag: 0.89,
+    })
 
     const lootDrops = []
     const dropRoll = this.runRng()
@@ -511,10 +685,12 @@ export class LabyrinthusEngine {
 
     if (enemy.attackCooldownLeft <= 0 && dist <= enemy.attackRange) {
       const projectileDir = normalize(toPlayerX, toPlayerY)
+      const muzzleX = enemy.x + projectileDir.x * (enemy.radius + 8)
+      const muzzleY = enemy.y + projectileDir.y * (enemy.radius + 8)
       this.projectiles.push(
         createProjectile({
-          x: enemy.x + projectileDir.x * (enemy.radius + 8),
-          y: enemy.y + projectileDir.y * (enemy.radius + 8),
+          x: muzzleX,
+          y: muzzleY,
           velocityX: projectileDir.x * enemy.projectileSpeed,
           velocityY: projectileDir.y * enemy.projectileSpeed,
           damage: enemy.damage,
@@ -524,6 +700,20 @@ export class LabyrinthusEngine {
           life: 2,
         }),
       )
+      this.spawnParticles({
+        x: muzzleX,
+        y: muzzleY,
+        count: 6,
+        color: '#dbe8ff',
+        speedMin: 60,
+        speedMax: 130,
+        sizeMin: 1.2,
+        sizeMax: 2.8,
+        lifeMin: 0.1,
+        lifeMax: 0.26,
+        angle: Math.atan2(projectileDir.y, projectileDir.x),
+        spread: Math.PI * 0.65,
+      })
       enemy.attackCooldownLeft = enemy.attackCooldown
     }
   }
@@ -531,17 +721,57 @@ export class LabyrinthusEngine {
   updateProjectiles(deltaTime) {
     for (let index = this.projectiles.length - 1; index >= 0; index -= 1) {
       const projectile = this.projectiles[index]
+      projectile.prevX = projectile.x
+      projectile.prevY = projectile.y
       projectile.x += projectile.velocityX * deltaTime
       projectile.y += projectile.velocityY * deltaTime
       projectile.life -= deltaTime
+      projectile.trail.unshift({
+        x: projectile.x,
+        y: projectile.y,
+        life: 0.2,
+      })
+
+      if (projectile.trail.length > 6) {
+        projectile.trail.length = 6
+      }
+
+      for (const point of projectile.trail) {
+        point.life -= deltaTime
+      }
+      projectile.trail = projectile.trail.filter((point) => point.life > 0)
 
       if (projectile.life <= 0 || isProjectileBlocked(projectile, this.currentRoom)) {
+        this.spawnParticles({
+          x: projectile.x,
+          y: projectile.y,
+          count: 4,
+          color: toRgba(projectile.color, 1),
+          speedMin: 30,
+          speedMax: 90,
+          sizeMin: 1,
+          sizeMax: 2.4,
+          lifeMin: 0.09,
+          lifeMax: 0.2,
+        })
         this.projectiles.splice(index, 1)
         continue
       }
 
       if (projectile.owner === 'enemy' && circlesOverlap(projectile, this.player, -2)) {
         this.damagePlayer(projectile.damage)
+        this.spawnParticles({
+          x: projectile.x,
+          y: projectile.y,
+          count: 14,
+          color: '#ffd1d1',
+          speedMin: 70,
+          speedMax: 180,
+          sizeMin: 1.2,
+          sizeMax: 3.6,
+          lifeMin: 0.12,
+          lifeMax: 0.32,
+        })
         this.projectiles.splice(index, 1)
       }
     }
@@ -562,14 +792,50 @@ export class LabyrinthusEngine {
       if (loot.type === 'coin') {
         this.stats.coins += loot.value
         this.stats.score += loot.value * 6
+        this.spawnParticles({
+          x: loot.x,
+          y: loot.y,
+          count: 8,
+          color: '#ffe18a',
+          speedMin: 36,
+          speedMax: 120,
+          sizeMin: 1.2,
+          sizeMax: 3.4,
+          lifeMin: 0.14,
+          lifeMax: 0.3,
+        })
       } else if (loot.type === 'potion') {
         this.stats.potions = Math.min(9, this.stats.potions + 1)
         this.stats.score += 22
+        this.spawnParticles({
+          x: loot.x,
+          y: loot.y,
+          count: 12,
+          color: '#ff89b8',
+          speedMin: 50,
+          speedMax: 140,
+          sizeMin: 1.3,
+          sizeMax: 3.8,
+          lifeMin: 0.12,
+          lifeMax: 0.3,
+        })
       } else if (loot.type === 'relic' && loot.data) {
         this.stats.relics += 1
         loot.data.apply({ player: this.player, stats: this.stats })
         this.stats.score += 40
         this.setMessage(`${loot.data.name} found: ${loot.data.description}`, 2.3)
+        this.spawnParticles({
+          x: loot.x,
+          y: loot.y,
+          count: 18,
+          color: '#8aa8ff',
+          speedMin: 66,
+          speedMax: 190,
+          sizeMin: 1.5,
+          sizeMax: 4.2,
+          lifeMin: 0.2,
+          lifeMax: 0.5,
+        })
       }
 
       this.loot.splice(index, 1)
@@ -585,6 +851,22 @@ export class LabyrinthusEngine {
 
     this.player.hp = Math.max(0, this.player.hp - amount)
     this.player.invulnerability = 0.52
+    this.damageFlash = Math.min(0.6, this.damageFlash + 0.32)
+    this.addCameraShake(0.36)
+    this.spawnParticles({
+      x: this.player.x,
+      y: this.player.y,
+      count: 16,
+      color: '#ffd0d0',
+      speedMin: 80,
+      speedMax: 210,
+      sizeMin: 1.5,
+      sizeMax: 3.5,
+      lifeMin: 0.14,
+      lifeMax: 0.38,
+      gravity: 45,
+      drag: 0.89,
+    })
 
     if (this.player.hp <= 0) {
       this.triggerGameOver()
@@ -598,6 +880,20 @@ export class LabyrinthusEngine {
 
     this.currentRoom.cleared = true
     this.setMessage('Room cleared. Doors unlocked.', 1.8)
+    this.addCameraShake(0.2)
+    this.spawnParticles({
+      x: WORLD.width / 2,
+      y: WORLD.height / 2,
+      count: 26,
+      color: '#7ef3cc',
+      speedMin: 90,
+      speedMax: 250,
+      sizeMin: 1.7,
+      sizeMax: 4.4,
+      lifeMin: 0.2,
+      lifeMax: 0.52,
+      gravity: 25,
+    })
 
     if (!this.currentRoom.clearCounted && this.currentRoom.type !== 'start') {
       this.currentRoom.clearCounted = true
@@ -658,6 +954,20 @@ export class LabyrinthusEngine {
     if (this.currentRoom.type === 'treasure') {
       this.setMessage('Treasure vault discovered.', 2)
     }
+
+    this.spawnParticles({
+      x: this.player.x,
+      y: this.player.y,
+      count: 14,
+      color: '#8ec6ff',
+      speedMin: 70,
+      speedMax: 165,
+      sizeMin: 1.5,
+      sizeMax: 3.4,
+      lifeMin: 0.14,
+      lifeMax: 0.36,
+      gravity: 20,
+    })
 
     this.stats.score += 30
     this.emitState(true)
@@ -750,6 +1060,22 @@ export class LabyrinthusEngine {
     this.scene = 'gameover'
     this.pendingUpgrades = []
     this.pointer.down = false
+    this.addCameraShake(0.55)
+    this.damageFlash = Math.min(0.72, this.damageFlash + 0.5)
+    this.spawnParticles({
+      x: this.player?.x || WORLD.width / 2,
+      y: this.player?.y || WORLD.height / 2,
+      count: 42,
+      color: '#ffd2d2',
+      speedMin: 100,
+      speedMax: 260,
+      sizeMin: 1.8,
+      sizeMax: 4.8,
+      lifeMin: 0.24,
+      lifeMax: 0.64,
+      gravity: 55,
+      drag: 0.88,
+    })
 
     this.gameOverSummary = {
       roomsCleared: this.stats.roomsCleared,
@@ -775,6 +1101,31 @@ export class LabyrinthusEngine {
     this.currentRoom.loot = this.loot
   }
 
+  getMapSnapshot() {
+    if (!this.dungeon) {
+      return []
+    }
+
+    const rooms = []
+    for (const room of this.dungeon.rooms.values()) {
+      if (!room.visited && room !== this.currentRoom) {
+        continue
+      }
+
+      rooms.push({
+        x: room.x,
+        y: room.y,
+        type: room.type,
+        visited: room.visited,
+        cleared: room.cleared,
+        doors: { ...room.doors },
+        isCurrent: room === this.currentRoom,
+      })
+    }
+
+    return rooms
+  }
+
   emitState(force = false) {
     if (!force && !this.onStateChange) {
       return
@@ -784,6 +1135,9 @@ export class LabyrinthusEngine {
       title: LABYRINTHUS_TITLE,
       scene: this.scene,
       message: this.message,
+      runSeed: this.runSeed,
+      runTime: this.time,
+      enemiesRemaining: this.enemies.length,
       player: this.player
         ? {
             hp: this.player.hp,
@@ -812,6 +1166,7 @@ export class LabyrinthusEngine {
         title: upgrade.title,
         description: upgrade.description,
       })),
+      map: this.getMapSnapshot(),
       gameOver: this.gameOverSummary,
       canUsePotion:
         Boolean(this.player) &&
@@ -823,6 +1178,27 @@ export class LabyrinthusEngine {
     this.onStateChange(snapshot)
   }
 
+  drawSprite(name, x, y, drawSize, frame = 0, alpha = 1) {
+    const sprite = this.sprites?.[name]
+    if (!sprite || !sprite.frames.length) {
+      return false
+    }
+
+    const spriteFrame = sprite.frames[frame % sprite.frames.length]
+    const width = drawSize
+    const height = drawSize * (sprite.height / sprite.width)
+    const halfW = width / 2
+    const halfH = height / 2
+
+    const previousSmoothing = this.ctx.imageSmoothingEnabled
+    this.ctx.imageSmoothingEnabled = false
+    this.ctx.globalAlpha = alpha
+    this.ctx.drawImage(spriteFrame, Math.round(x - halfW), Math.round(y - halfH), width, height)
+    this.ctx.globalAlpha = 1
+    this.ctx.imageSmoothingEnabled = previousSmoothing
+    return true
+  }
+
   render() {
     const ctx = this.ctx
     if (!ctx) {
@@ -831,8 +1207,19 @@ export class LabyrinthusEngine {
 
     ctx.clearRect(0, 0, WORLD.width, WORLD.height)
 
+    const shakeStrength = this.cameraShake * 8
+    const shakeX = shakeStrength > 0 ? (Math.random() * 2 - 1) * shakeStrength : 0
+    const shakeY = shakeStrength > 0 ? (Math.random() * 2 - 1) * shakeStrength : 0
+    ctx.save()
+    if (shakeStrength > 0) {
+      ctx.translate(shakeX, shakeY)
+    }
+
     if (!this.currentRoom) {
       this.renderBackdropOnly()
+      this.renderParticles()
+      ctx.restore()
+      this.renderPostProcess()
       return
     }
 
@@ -841,49 +1228,80 @@ export class LabyrinthusEngine {
     this.renderProjectiles()
     this.renderEnemies()
     this.renderPlayer()
+    this.renderParticles()
+    ctx.restore()
+
+    this.renderPostProcess()
     this.renderRoomHints()
   }
 
   renderBackdropOnly() {
     const ctx = this.ctx
     const gradient = ctx.createLinearGradient(0, 0, 0, WORLD.height)
-    gradient.addColorStop(0, '#1c2f4f')
-    gradient.addColorStop(1, '#101b30')
+    gradient.addColorStop(0, '#1a2f4c')
+    gradient.addColorStop(0.55, '#12233b')
+    gradient.addColorStop(1, '#0a1427')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, WORLD.width, WORLD.height)
 
-    ctx.fillStyle = 'rgba(146, 177, 230, 0.12)'
-    for (let x = 0; x < WORLD.width; x += 60) {
+    ctx.fillStyle = 'rgba(146, 177, 230, 0.1)'
+    for (let x = 0; x < WORLD.width; x += 56) {
       ctx.fillRect(x, 0, 1, WORLD.height)
     }
-    for (let y = 0; y < WORLD.height; y += 60) {
+    for (let y = 0; y < WORLD.height; y += 56) {
       ctx.fillRect(0, y, WORLD.width, 1)
+    }
+
+    ctx.fillStyle = 'rgba(219, 235, 255, 0.38)'
+    for (let star = 0; star < 38; star += 1) {
+      const x = (star * 311 + this.time * 20) % WORLD.width
+      const y = (star * 137 + this.time * 9) % WORLD.height
+      const r = star % 3 === 0 ? 1.8 : 1
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fill()
     }
   }
 
   renderRoom(room) {
     const ctx = this.ctx
     const gradient = ctx.createLinearGradient(0, 0, WORLD.width, WORLD.height)
-    gradient.addColorStop(0, LAYOUT_COLORS.floorA)
-    gradient.addColorStop(1, LAYOUT_COLORS.floorB)
+    gradient.addColorStop(0, '#1a2b46')
+    gradient.addColorStop(0.55, LAYOUT_COLORS.floorA)
+    gradient.addColorStop(1, '#101a2f')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, WORLD.width, WORLD.height)
 
-    if (room.type === 'treasure') {
-      ctx.fillStyle = 'rgba(243, 191, 88, 0.08)'
-      ctx.fillRect(0, 0, WORLD.width, WORLD.height)
-    } else if (room.type === 'elite') {
-      ctx.fillStyle = 'rgba(252, 114, 114, 0.08)'
-      ctx.fillRect(0, 0, WORLD.width, WORLD.height)
-    }
+    const lightPool = ctx.createRadialGradient(
+      WORLD.width / 2,
+      WORLD.height / 2,
+      80,
+      WORLD.width / 2,
+      WORLD.height / 2,
+      WORLD.width * 0.72,
+    )
+    lightPool.addColorStop(0, 'rgba(182, 215, 255, 0.09)')
+    lightPool.addColorStop(1, 'rgba(23, 38, 63, 0)')
+    ctx.fillStyle = lightPool
+    ctx.fillRect(0, 0, WORLD.width, WORLD.height)
 
-    ctx.fillStyle = 'rgba(145, 177, 230, 0.08)'
-    for (let x = 0; x < WORLD.width; x += 52) {
+    ctx.fillStyle = roomTint(room.type)
+    ctx.fillRect(0, 0, WORLD.width, WORLD.height)
+
+    ctx.fillStyle = 'rgba(145, 177, 230, 0.07)'
+    for (let x = 0; x < WORLD.width; x += 50) {
       ctx.fillRect(x, 0, 1, WORLD.height)
     }
-    for (let y = 0; y < WORLD.height; y += 52) {
+    for (let y = 0; y < WORLD.height; y += 50) {
       ctx.fillRect(0, y, WORLD.width, 1)
     }
+
+    const pulse = 0.28 + (Math.sin(this.time * 1.4) + 1) * 0.1
+    ctx.strokeStyle = `rgba(125, 177, 255, ${pulse})`
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.arc(WORLD.width / 2, WORLD.height / 2, 66, 0, Math.PI * 2)
+    ctx.stroke()
 
     this.renderWalls(room)
     this.renderObstacles(room)
@@ -897,7 +1315,7 @@ export class LabyrinthusEngine {
     const sideDoorStart = WORLD.height / 2 - WORLD.doorWidth / 2
     const sideDoorEnd = WORLD.height / 2 + WORLD.doorWidth / 2
 
-    ctx.fillStyle = LAYOUT_COLORS.border
+    ctx.fillStyle = '#2b405f'
     if (room.doors.north) {
       ctx.fillRect(0, 0, doorStart, thickness)
       ctx.fillRect(doorEnd, 0, WORLD.width - doorEnd, thickness)
@@ -931,6 +1349,10 @@ export class LabyrinthusEngine {
       ctx.fillRect(WORLD.width - thickness, 0, thickness, WORLD.height)
     }
 
+    ctx.strokeStyle = 'rgba(130, 167, 214, 0.38)'
+    ctx.lineWidth = 3
+    ctx.strokeRect(1.5, 1.5, WORLD.width - 3, WORLD.height - 3)
+
     this.renderDoorGates(room, { doorStart, doorEnd, sideDoorStart, sideDoorEnd, thickness })
   }
 
@@ -938,13 +1360,14 @@ export class LabyrinthusEngine {
     const ctx = this.ctx
     const gateColor = room.cleared ? LAYOUT_COLORS.doorOpen : LAYOUT_COLORS.doorLocked
     ctx.fillStyle = gateColor
+    const pulse = room.cleared ? 0.38 + (Math.sin(this.time * 4.5) + 1) * 0.1 : 0.85
 
     if (room.doors.north) {
-      ctx.globalAlpha = room.cleared ? 0.42 : 0.85
+      ctx.globalAlpha = pulse
       ctx.fillRect(dimensions.doorStart, 0, dimensions.doorEnd - dimensions.doorStart, 8)
     }
     if (room.doors.south) {
-      ctx.globalAlpha = room.cleared ? 0.42 : 0.85
+      ctx.globalAlpha = pulse
       ctx.fillRect(
         dimensions.doorStart,
         WORLD.height - 8,
@@ -953,11 +1376,11 @@ export class LabyrinthusEngine {
       )
     }
     if (room.doors.west) {
-      ctx.globalAlpha = room.cleared ? 0.42 : 0.85
+      ctx.globalAlpha = pulse
       ctx.fillRect(0, dimensions.sideDoorStart, 8, dimensions.sideDoorEnd - dimensions.sideDoorStart)
     }
     if (room.doors.east) {
-      ctx.globalAlpha = room.cleared ? 0.42 : 0.85
+      ctx.globalAlpha = pulse
       ctx.fillRect(
         WORLD.width - 8,
         dimensions.sideDoorStart,
@@ -971,11 +1394,22 @@ export class LabyrinthusEngine {
   renderObstacles(room) {
     const ctx = this.ctx
     for (const obstacle of room.obstacles) {
-      ctx.fillStyle = LAYOUT_COLORS.obstacleFill
+      const blockGradient = ctx.createLinearGradient(
+        obstacle.x,
+        obstacle.y,
+        obstacle.x + obstacle.w,
+        obstacle.y + obstacle.h,
+      )
+      blockGradient.addColorStop(0, '#253c5e')
+      blockGradient.addColorStop(1, '#172844')
+      ctx.fillStyle = blockGradient
       ctx.strokeStyle = LAYOUT_COLORS.obstacleStroke
       ctx.lineWidth = 3
       ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h)
       ctx.strokeRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h)
+
+      ctx.fillStyle = 'rgba(172, 201, 239, 0.16)'
+      ctx.fillRect(obstacle.x + 6, obstacle.y + 6, obstacle.w - 12, 4)
     }
   }
 
@@ -984,6 +1418,7 @@ export class LabyrinthusEngine {
     for (const loot of this.loot) {
       const pulse = 1 + Math.sin(loot.pulse) * 0.08
       const radius = loot.radius * pulse
+      const bob = Math.sin(loot.pulse * 0.85) * 3
 
       if (loot.type === 'coin') {
         ctx.fillStyle = LAYOUT_COLORS.lootCoin
@@ -993,6 +1428,12 @@ export class LabyrinthusEngine {
         ctx.fillStyle = LAYOUT_COLORS.lootRelic
       }
 
+      ctx.globalAlpha = 0.3
+      ctx.beginPath()
+      ctx.arc(loot.x, loot.y, radius + 8, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.globalAlpha = 1
+
       ctx.beginPath()
       ctx.arc(loot.x, loot.y, radius, 0, Math.PI * 2)
       ctx.fill()
@@ -1001,26 +1442,82 @@ export class LabyrinthusEngine {
       ctx.beginPath()
       ctx.arc(loot.x - radius * 0.2, loot.y - radius * 0.2, radius * 0.25, 0, Math.PI * 2)
       ctx.fill()
+
+      const spriteName = loot.type === 'coin' ? 'coin' : loot.type === 'potion' ? 'potion' : 'relic'
+      const spriteFrame = Math.floor((this.time + loot.pulse) * 4) % 2
+      this.drawSprite(spriteName, loot.x, loot.y + bob, radius * 2.4, spriteFrame, 0.95)
     }
   }
 
   renderProjectiles() {
     const ctx = this.ctx
     for (const projectile of this.projectiles) {
+      for (const point of projectile.trail) {
+        const ratio = Math.max(0, point.life / 0.2)
+        ctx.globalAlpha = ratio * 0.4
+        ctx.fillStyle = projectile.color
+        ctx.beginPath()
+        ctx.arc(point.x, point.y, projectile.radius * 0.74 * ratio, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      ctx.globalAlpha = 1
+      ctx.shadowColor = toRgba(projectile.color, 0.85)
+      ctx.shadowBlur = 14
       ctx.fillStyle = projectile.color
       ctx.beginPath()
       ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2)
       ctx.fill()
+      ctx.shadowBlur = 0
+      this.drawSprite('projectile', projectile.x, projectile.y, projectile.radius * 3.4, 0, 0.95)
     }
   }
 
   renderEnemies() {
     const ctx = this.ctx
     for (const enemy of this.enemies) {
-      ctx.fillStyle = enemy.hitFx > 0 ? '#ffffff' : enemy.color
+      const bob = Math.sin(this.time * 6 + enemy.aiSeed) * 1.4
+      const frame = Math.floor(this.time * 8 + enemy.aiSeed) % 2
+      const spriteSize = enemy.radius * 2.45
+
+      ctx.fillStyle = 'rgba(4, 10, 20, 0.5)'
       ctx.beginPath()
-      ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2)
+      ctx.ellipse(
+        enemy.x,
+        enemy.y + enemy.radius * 0.8,
+        enemy.radius * 0.95,
+        enemy.radius * 0.5,
+        0,
+        0,
+        Math.PI * 2,
+      )
       ctx.fill()
+
+      const drewSprite = this.drawSprite(
+        enemy.type,
+        enemy.x,
+        enemy.y + bob,
+        spriteSize,
+        frame,
+        enemy.hitFx > 0 ? 0.72 : 1,
+      )
+
+      if (!drewSprite) {
+        const bodyGradient = ctx.createRadialGradient(
+          enemy.x - enemy.radius * 0.35,
+          enemy.y - enemy.radius * 0.45,
+          enemy.radius * 0.2,
+          enemy.x,
+          enemy.y,
+          enemy.radius * 1.1,
+        )
+        bodyGradient.addColorStop(0, enemy.hitFx > 0 ? '#ffffff' : '#f3fbff')
+        bodyGradient.addColorStop(1, enemy.hitFx > 0 ? '#d5ecff' : enemy.color)
+        ctx.fillStyle = bodyGradient
+        ctx.beginPath()
+        ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
 
       if (enemy.type === 'skeleton') {
         ctx.strokeStyle = '#7fa4dd'
@@ -1029,15 +1526,21 @@ export class LabyrinthusEngine {
         ctx.moveTo(enemy.x - enemy.radius - 2, enemy.y - enemy.radius + 2)
         ctx.lineTo(enemy.x + enemy.radius + 1, enemy.y + enemy.radius - 2)
         ctx.stroke()
+      } else if (enemy.type === 'tank') {
+        ctx.strokeStyle = '#ffd6c9'
+        ctx.lineWidth = 2.4
+        ctx.beginPath()
+        ctx.arc(enemy.x, enemy.y, enemy.radius * 0.66, 0, Math.PI * 2)
+        ctx.stroke()
       }
 
       if (enemy.hp < enemy.maxHp) {
         const barWidth = 34
         const ratio = Math.max(0, enemy.hp / enemy.maxHp)
         ctx.fillStyle = 'rgba(8, 16, 34, 0.82)'
-        ctx.fillRect(enemy.x - barWidth / 2, enemy.y - enemy.radius - 14, barWidth, 5)
+        ctx.fillRect(enemy.x - barWidth / 2, enemy.y - enemy.radius - 18, barWidth, 5)
         ctx.fillStyle = '#4fe19a'
-        ctx.fillRect(enemy.x - barWidth / 2, enemy.y - enemy.radius - 14, barWidth * ratio, 5)
+        ctx.fillRect(enemy.x - barWidth / 2, enemy.y - enemy.radius - 18, barWidth * ratio, 5)
       }
     }
   }
@@ -1048,15 +1551,46 @@ export class LabyrinthusEngine {
       ctx.globalAlpha = 0.45
     }
 
-    ctx.fillStyle = LAYOUT_COLORS.player
+    const auraPulse = 0.18 + (Math.sin(this.time * 7) + 1) * 0.06
+    ctx.globalAlpha = auraPulse
+    ctx.fillStyle = '#a5d4ff'
     ctx.beginPath()
-    ctx.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2)
+    ctx.arc(this.player.x, this.player.y, this.player.radius + 12, 0, Math.PI * 2)
     ctx.fill()
+    ctx.globalAlpha = 1
 
-    ctx.fillStyle = LAYOUT_COLORS.playerCore
-    ctx.beginPath()
-    ctx.arc(this.player.x, this.player.y, this.player.radius * 0.48, 0, Math.PI * 2)
-    ctx.fill()
+    const moveIntensity = Math.abs(this.movementIntent.x) + Math.abs(this.movementIntent.y)
+    const playerFrame = moveIntensity > 0.1 ? Math.floor(this.time * 10) % 2 : 0
+    const drewSprite = this.drawSprite(
+      'player',
+      this.player.x,
+      this.player.y - 1,
+      this.player.radius * 2.55,
+      playerFrame,
+      1,
+    )
+
+    if (!drewSprite) {
+      const bodyGradient = ctx.createRadialGradient(
+        this.player.x - this.player.radius * 0.45,
+        this.player.y - this.player.radius * 0.45,
+        this.player.radius * 0.2,
+        this.player.x,
+        this.player.y,
+        this.player.radius,
+      )
+      bodyGradient.addColorStop(0, '#ffffff')
+      bodyGradient.addColorStop(1, LAYOUT_COLORS.player)
+      ctx.fillStyle = bodyGradient
+      ctx.beginPath()
+      ctx.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = LAYOUT_COLORS.playerCore
+      ctx.beginPath()
+      ctx.arc(this.player.x, this.player.y, this.player.radius * 0.48, 0, Math.PI * 2)
+      ctx.fill()
+    }
 
     ctx.strokeStyle = '#8bc2ff'
     ctx.lineWidth = 3
@@ -1071,8 +1605,8 @@ export class LabyrinthusEngine {
     if (this.player.attackFx > 0) {
       const sweep = Math.PI * 0.55
       const angle = Math.atan2(this.player.facingY, this.player.facingX)
-      ctx.strokeStyle = 'rgba(126, 203, 255, 0.85)'
-      ctx.lineWidth = 6
+      ctx.strokeStyle = `rgba(126, 203, 255, ${0.5 + this.player.attackFx})`
+      ctx.lineWidth = 7
       ctx.beginPath()
       ctx.arc(
         this.player.x,
@@ -1087,17 +1621,67 @@ export class LabyrinthusEngine {
     ctx.globalAlpha = 1
   }
 
+  renderParticles() {
+    const ctx = this.ctx
+    for (const particle of this.particles) {
+      const alpha = Math.max(0, particle.life / Math.max(0.001, particle.maxLife))
+      if (alpha <= 0) {
+        continue
+      }
+
+      ctx.globalAlpha = alpha
+      ctx.fillStyle = particle.color
+      ctx.beginPath()
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.globalAlpha = 1
+  }
+
+  renderPostProcess() {
+    const ctx = this.ctx
+
+    const vignette = ctx.createRadialGradient(
+      WORLD.width / 2,
+      WORLD.height / 2,
+      WORLD.height * 0.18,
+      WORLD.width / 2,
+      WORLD.height / 2,
+      WORLD.width * 0.68,
+    )
+    vignette.addColorStop(0, 'rgba(0, 0, 0, 0)')
+    vignette.addColorStop(1, 'rgba(2, 7, 16, 0.5)')
+    ctx.fillStyle = vignette
+    ctx.fillRect(0, 0, WORLD.width, WORLD.height)
+
+    if (this.damageFlash > 0) {
+      ctx.fillStyle = `rgba(255, 94, 94, ${this.damageFlash * 0.32})`
+      ctx.fillRect(0, 0, WORLD.width, WORLD.height)
+    }
+  }
+
   renderRoomHints() {
     const ctx = this.ctx
 
-    if (!this.currentRoom.cleared && this.scene === 'playing') {
-      ctx.fillStyle = 'rgba(5, 10, 24, 0.45)'
-      ctx.fillRect(WORLD.width / 2 - 170, 16, 340, 34)
-      ctx.fillStyle = '#d4ddef'
-      ctx.font = '600 15px "Manrope", sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('Defeat all enemies to unlock exits', WORLD.width / 2, 39)
+    if (this.scene !== 'playing' || !this.currentRoom) {
+      return
     }
+
+    ctx.fillStyle = 'rgba(5, 12, 28, 0.58)'
+    ctx.fillRect(WORLD.width / 2 - 210, 14, 420, 38)
+    ctx.strokeStyle = 'rgba(157, 191, 237, 0.36)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(WORLD.width / 2 - 210, 14, 420, 38)
+
+    const hintText = this.currentRoom.cleared
+      ? 'Room cleared. Cross a glowing gate to continue'
+      : `Enemies remaining: ${this.enemies.length}`
+
+    ctx.fillStyle = '#e0edff'
+    ctx.font = '600 15px "Manrope", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(hintText, WORLD.width / 2, 39)
+    ctx.textAlign = 'left'
   }
 }
 

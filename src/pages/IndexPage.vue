@@ -34,9 +34,9 @@
               unelevated
               no-caps
               color="secondary"
-              label="My last work"
+              label="Play Labyrinthus"
               class="pill-btn"
-              @click="openLastWorkPage"
+              @click="openLabyrinthusPage"
             />
           </div>
 
@@ -609,8 +609,8 @@ function scrollTo(id) {
   }
 }
 
-function openLastWorkPage() {
-  router.push('/my-last-work')
+function openLabyrinthusPage() {
+  router.push('/labyrinthus')
 }
 
 function onWindowScroll() {

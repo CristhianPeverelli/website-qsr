@@ -87,12 +87,16 @@ export function createProjectile({
     id: `projectile-${projectileId += 1}`,
     x,
     y,
+    prevX: x,
+    prevY: y,
     velocityX,
     velocityY,
     radius,
     damage,
     life,
+    maxLife: life,
     owner,
     color,
+    trail: [],
   }
 }
