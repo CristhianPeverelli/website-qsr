@@ -25,6 +25,11 @@
         />
       </div>
 
+      <div v-else class="page-context gt-xs">
+        <span class="page-context__label">Current</span>
+        <strong class="page-context__title">{{ currentPageLabel }}</strong>
+      </div>
+
       <div class="header-actions">
         <q-btn
           flat
@@ -58,9 +63,9 @@
           v-else
           flat
           no-caps
-          label="Back to portfolio"
+          :label="backButtonLabel"
           class="back-btn"
-          @click="goToSection('home')"
+          @click="goToSection(returnSectionId)"
         />
       </div>
     </q-toolbar>
@@ -110,6 +115,10 @@ const isDark = ref($q.dark.isActive)
 let observer = null
 
 const isHome = computed(() => route.path === '/')
+const isDeltaE = computed(() => route.path === '/delta-e')
+const currentPageLabel = computed(() => (isDeltaE.value ? 'Delta - E' : 'Portfolio'))
+const returnSectionId = computed(() => (isDeltaE.value ? 'projects' : 'home'))
+const backButtonLabel = computed(() => (isDeltaE.value ? 'Back to projects' : 'Back to portfolio'))
 
 function applyTheme(theme) {
   const darkTheme = theme === 'dark'

@@ -34,8 +34,9 @@
               unelevated
               no-caps
               color="secondary"
-              label="My last work"
+              label="Try my new game"
               class="pill-btn"
+              @click="goToDeltaE"
             />
           </div>
 
@@ -252,15 +253,16 @@
 
             <q-card-actions class="project-actions">
               <q-btn
-                v-if="project.live"
+                v-if="project.live || project.liveRoute"
                 flat
                 no-caps
                 color="primary"
                 icon="open_in_new"
-                label="Live"
-                :href="project.live"
-                target="_blank"
-                rel="noopener"
+                :label="project.liveLabel || 'Live'"
+                :href="project.live || undefined"
+                :to="project.liveRoute || undefined"
+                :target="project.live ? '_blank' : undefined"
+                :rel="project.live ? 'noopener' : undefined"
               />
               <q-btn
                 flat
@@ -401,6 +403,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useMeta } from 'quasar'
+import { useRouter } from 'vue-router'
 import InteractiveIcosahedron from 'src/components/InteractiveIcosahedron.vue'
 
 useMeta(() => ({
@@ -478,6 +481,8 @@ const timelineItems = [
   },
 ]
 
+const router = useRouter()
+
 const projectFilters = [
   { id: 'all', label: 'All' },
   { id: 'web', label: 'Web Apps' },
@@ -487,6 +492,18 @@ const projectFilters = [
 ]
 
 const projects = [
+  {
+    title: 'Delta - E',
+    category: 'game',
+    status: 'New interactive release',
+    summary:
+      'Minimal color-memory puzzle built in Quasar with perceptual LCH generation and Delta E validation through colorjs.io.',
+    stack: ['Vue 3', 'Quasar', 'colorjs.io', 'SCSS'],
+    live: '',
+    liveRoute: '/delta-e',
+    liveLabel: 'Play now',
+    repo: 'https://github.com/CristhianPeverelli/website-qsr',
+  },
   {
     title: 'Pevefast',
     category: 'game',
@@ -603,6 +620,10 @@ function scrollTo(id) {
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+function goToDeltaE() {
+  router.push('/delta-e')
 }
 
 function onWindowScroll() {

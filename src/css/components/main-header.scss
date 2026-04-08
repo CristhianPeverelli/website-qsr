@@ -101,6 +101,31 @@
   gap: 6px;
 }
 
+.page-context {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+}
+
+.page-context__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.page-context__title {
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  color: var(--text-primary);
+}
+
 .nav-link {
   border-radius: 999px;
   padding-inline: 12px;
@@ -127,6 +152,8 @@
 
 .back-btn {
   border-radius: 999px;
+  padding-inline: 12px;
+  font-weight: 700;
 }
 
 .mobile-nav {
