@@ -16,18 +16,11 @@
 
       <section class="surface-card intro-card">
         <div class="intro-copy">
-          <p class="intro-kicker">Playable Game Project</p>
           <h1 class="intro-title">Labyrinthus</h1>
           <p class="intro-lead">
-            A handcrafted top-down roguelite where every room is generated on the fly. Fight, loot,
-            adapt your build, and push your score run after run.
+            A handcrafted top-down roguelite where every room is generated on the fly. Fight, loot
+            and push your score run after run.
           </p>
-
-          <div class="intro-chips">
-            <q-chip square color="primary" text-color="white" icon="grid_view">Procedural map</q-chip>
-            <q-chip square color="secondary" text-color="white" icon="bolt">Fast combat</q-chip>
-            <q-chip square color="positive" text-color="white" icon="diamond">Relic system</q-chip>
-          </div>
         </div>
 
         <div class="intro-panel">
@@ -37,6 +30,15 @@
             <li>Every 4 rooms, pick one upgrade.</li>
             <li>Manage potions, relics, and score multipliers.</li>
           </ul>
+
+          <a
+            class="asset-credit"
+            href="https://kenney.nl/assets/tiny-dungeon"
+            target="_blank"
+            rel="noopener"
+          >
+            Pixel art pack: Kenney Tiny Dungeon (CC0)
+          </a>
         </div>
       </section>
 
@@ -75,10 +77,10 @@ function goBack() {
   min-height: calc(100vh - 76px);
   padding: clamp(20px, 4vw, 48px) clamp(14px, 4vw, 42px) clamp(30px, 4vw, 52px);
   background:
-    radial-gradient(circle at 6% 10%, rgba(83, 167, 255, 0.16), transparent 36%),
-    radial-gradient(circle at 92% 82%, rgba(39, 232, 185, 0.12), transparent 34%),
-    radial-gradient(circle at 50% 100%, rgba(15, 98, 254, 0.11), transparent 48%),
-    var(--bg-primary);
+    radial-gradient(circle at 6% 10%, rgba(255, 175, 109, 0.16), transparent 36%),
+    radial-gradient(circle at 92% 82%, rgba(118, 239, 197, 0.12), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(255, 220, 127, 0.11), transparent 48%),
+    linear-gradient(180deg, rgba(28, 17, 27, 0.98), rgba(14, 10, 20, 0.98));
 }
 
 .page-aura {
@@ -114,16 +116,25 @@ function goBack() {
 
 .back-button {
   width: fit-content;
-  border-radius: 999px;
+  border: 1px solid rgba(255, 223, 170, 0.28);
+  border-radius: 8px;
+  background: rgba(19, 12, 24, 0.82);
+  color: #f5e4c9;
+  font-family: var(--font-pixel);
+  letter-spacing: 0.02em;
 }
 
 .intro-card {
-  border-radius: 22px;
+  border-radius: 14px;
   padding: clamp(16px, 2.7vw, 24px);
   display: grid;
   grid-template-columns: 1.45fr 1fr;
   gap: 16px;
   align-items: stretch;
+  border-color: rgba(255, 217, 163, 0.16);
+  background:
+    linear-gradient(180deg, rgba(35, 22, 31, 0.95), rgba(18, 12, 24, 0.95)), var(--surface-card);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
 }
 
 .intro-copy {
@@ -135,20 +146,24 @@ function goBack() {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: #dfc0a2;
+  font-family: var(--font-pixel);
 }
 
 .intro-title {
   margin: 0;
   font-size: clamp(1.65rem, 4vw, 2.45rem);
-  color: var(--text-primary);
+  color: #fff3de;
+  font-family: var(--font-pixel);
+  line-height: 1.25;
+  text-shadow: 0 3px 0 rgba(91, 54, 33, 0.42);
 }
 
 .intro-lead {
   margin: 0;
-  color: var(--text-secondary);
+  color: rgba(244, 228, 205, 0.86);
   max-width: 62ch;
 }
 
@@ -159,24 +174,35 @@ function goBack() {
 }
 
 .intro-panel {
-  border-radius: 16px;
-  border: 1px solid var(--border-soft);
-  background: linear-gradient(180deg, rgba(18, 42, 70, 0.08), rgba(18, 42, 70, 0.03));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 213, 153, 0.2);
+  background: linear-gradient(180deg, rgba(71, 45, 35, 0.46), rgba(32, 21, 26, 0.52));
   padding: 14px;
 }
 
 .intro-panel__title {
   margin: 0 0 8px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #ffe8bf;
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
 }
 
 .intro-panel ul {
   margin: 0;
   padding-left: 18px;
-  color: var(--text-secondary);
+  color: rgba(244, 228, 205, 0.82);
   display: grid;
   gap: 5px;
+}
+
+.asset-credit {
+  display: inline-flex;
+  margin-top: 14px;
+  color: #8ff0d1;
+  text-decoration: none;
+  font-family: var(--font-pixel);
+  font-size: 0.72rem;
 }
 
 @media (max-width: 920px) {
