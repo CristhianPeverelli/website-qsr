@@ -39,27 +39,47 @@
         <canvas ref="canvasRef" class="labyrinthus__canvas" />
 
         <div v-if="gameState.scene === 'menu'" class="labyrinthus__overlay">
-          <q-card flat class="overlay-card">
+          <q-card flat class="overlay-card overlay-card--large">
             <q-card-section>
               <h3 class="overlay-title">Start a New Expedition</h3>
               <p class="overlay-text">
-                Enter the maze, clear each chamber, collect relics, and survive as long as possible.
+                Enter the maze, clear each chamber, collect relics and survive as long as possible.
               </p>
 
-              <div class="overlay-tags">
-                <span>WASD / Arrow keys</span>
-                <span>Mouse click or Space to attack</span>
-                <span>F or E to drink potion</span>
+              <div class="intro-chips">
+                <q-chip square icon="grid_view">WASD / Arrow keys</q-chip>
+                <q-chip square icon="bolt">Mouse click or Space to attack</q-chip>
+                <q-chip square icon="diamond">F or E to drink potion</q-chip>
+              </div>
+
+              <div class="loadout-grid">
+                <button
+                  v-for="loadout in loadouts"
+                  :key="loadout.id"
+                  type="button"
+                  class="loadout-card"
+                  :class="{ 'loadout-card--active': loadout.id === selectedLoadoutId }"
+                  @click="selectedLoadoutId = loadout.id"
+                >
+                  <p class="loadout-card__eyebrow">{{ loadout.archetype }}</p>
+                  <p class="loadout-card__title">{{ loadout.shortLabel }}</p>
+                  <p class="loadout-card__desc">{{ loadout.description }}</p>
+
+                  <div class="loadout-card__stats">
+                    <span>DMG {{ loadout.damage }}</span>
+                    <span>CRIT {{ Math.round(loadout.critChance * 100) }}%</span>
+                    <span>HASTE {{ loadout.attackCooldown.toFixed(2) }}s</span>
+                  </div>
+                </button>
               </div>
 
               <q-btn
                 unelevated
                 no-caps
-                color="primary"
                 icon="play_arrow"
-                label="Begin Run"
+                :label="`Begin with ${selectedLoadout.shortLabel}`"
                 class="overlay-action"
-                @click="startGame"
+                @click="startGame(selectedLoadoutId)"
               />
             </q-card-section>
           </q-card>
@@ -136,6 +156,7 @@
           <div class="fullscreen-health">
             <p class="fullscreen-health__title">Health</p>
             <p class="fullscreen-health__value">{{ roundedHp }} / {{ roundedMaxHp }}</p>
+            <p class="fullscreen-health__weapon">{{ currentWeaponLabel }}</p>
             <div class="fullscreen-health__bar">
               <span :style="{ width: `${Math.round(healthRatio * 100)}%` }" />
             </div>
@@ -158,66 +179,88 @@
     </div>
 
     <div class="labyrinthus__hud">
-      <article class="hud-card hud-card--health">
-        <div class="hud-head">
-          <p class="hud-title">Health</p>
-          <p class="hud-value">{{ roundedHp }} / {{ roundedMaxHp }}</p>
-        </div>
-        <q-linear-progress
-          rounded
-          size="11px"
-          :value="healthRatio"
-          color="positive"
-          track-color="grey-8"
-        />
-
-        <div class="hud-line-grid">
-          <p><span>Damage</span>{{ roundedDamage }}</p>
-          <p><span>Crit</span>{{ critChanceLabel }}</p>
-          <p><span>Attack CD</span>{{ attackCooldownLabel }}</p>
-        </div>
-      </article>
-
-      <article class="hud-card hud-card--stats">
-        <p class="hud-title">Run Stats</p>
-        <div class="hud-line-grid">
-          <p><span>Total Score</span>{{ gameState.stats.totalScore }}</p>
-          <p><span>Rooms Cleared</span>{{ gameState.stats.roomsCleared }}</p>
-          <p><span>Kills</span>{{ gameState.stats.kills }}</p>
-          <p><span>Coins</span>{{ gameState.stats.coins }}</p>
-          <p><span>Relics</span>{{ gameState.stats.relics }}</p>
-          <p><span>Potions</span>{{ gameState.stats.potions }}</p>
-        </div>
-      </article>
-
-      <article class="hud-card hud-card--room">
-        <p class="hud-title">Room Status</p>
-        <p class="room-label">{{ gameState.room?.typeLabel || 'Waiting for run' }}</p>
-        <p class="room-pos">{{ roomPosition }}</p>
-        <p class="room-doors">Doors: {{ roomDoors }}</p>
-
-        <div class="room-threat">
-          <div>
-            <p class="room-threat__label">Threat</p>
-            <p class="room-threat__value">{{ gameState.enemiesRemaining }}</p>
+      <div class="hud-stack">
+        <article class="hud-panel hud-panel--vitals">
+          <div class="hud-panel__top">
+            <div>
+              <p class="hud-label">Health</p>
+              <p class="hud-primary">{{ roundedHp }} / {{ roundedMaxHp }}</p>
+            </div>
+            <span class="hud-badge">{{ currentWeaponLabel }}</span>
           </div>
-          <q-linear-progress
-            rounded
-            size="9px"
-            :value="roomSafetyRatio"
-            color="accent"
-            track-color="grey-8"
+
+          <div class="hud-healthbar">
+            <span :style="{ width: `${Math.round(healthRatio * 100)}%` }" />
+          </div>
+
+          <div class="hud-chip-row">
+            <span
+              v-for="stat in combatStats"
+              :key="stat.label"
+              class="hud-chip"
+              :class="stat.tone ? `hud-chip--${stat.tone}` : ''"
+            >
+              <span class="hud-chip__label">{{ stat.label }}</span>
+              <span class="hud-chip__value">{{ stat.value }}</span>
+            </span>
+          </div>
+        </article>
+
+        <article class="hud-panel hud-panel--run">
+          <div class="hud-panel__top">
+            <div>
+              <p class="hud-label">Run Overview</p>
+              <p class="hud-primary">{{ gameState.stats.totalScore }}</p>
+            </div>
+            <span class="hud-badge hud-badge--soft">Score</span>
+          </div>
+
+          <div class="hud-metrics-grid">
+            <div
+              v-for="metric in runMetrics"
+              :key="metric.label"
+              class="hud-metric"
+              :class="metric.tone ? `hud-metric--${metric.tone}` : ''"
+            >
+              <span class="hud-metric__label">{{ metric.label }}</span>
+              <strong class="hud-metric__value">{{ metric.value }}</strong>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <article class="hud-panel hud-panel--room">
+        <div class="hud-panel__top">
+          <div>
+            <p class="hud-label">Room</p>
+            <p class="hud-primary">{{ currentRoomLabel }}</p>
+          </div>
+
+          <q-btn
+            flat
+            round
+            dense
+            color="primary"
+            class="hud-inline-action"
+            :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
+            :disable="!fullscreenAvailable"
+            @click="toggleFullscreen"
           />
         </div>
-      </article>
 
-      <article class="hud-card hud-card--map">
-        <div class="hud-head">
-          <p class="hud-title">Minimap</p>
-          <p class="hud-value">{{ exploredRooms }} explored</p>
+        <div class="hud-chip-row hud-chip-row--meta">
+          <span
+            v-for="item in roomMetaChips"
+            :key="item.label"
+            class="hud-chip hud-chip--quiet"
+            :class="item.tone ? `hud-chip--${item.tone}` : ''"
+          >
+            <span class="hud-chip__label">{{ item.label }}</span>
+            <span class="hud-chip__value">{{ item.value }}</span>
+          </span>
         </div>
 
-        <div class="minimap" :style="minimapStyle">
+        <div class="minimap minimap--hud" :style="minimapStyle">
           <div
             v-for="cell in minimapCells"
             :key="`${cell.x},${cell.y}`"
@@ -228,33 +271,7 @@
           />
         </div>
 
-        <div class="minimap-legend">
-          <span class="legend-dot legend-dot--current">Current</span>
-          <span class="legend-dot legend-dot--normal">Normal</span>
-          <span class="legend-dot legend-dot--elite">Elite</span>
-          <span class="legend-dot legend-dot--treasure">Treasure</span>
-          <span class="legend-dot legend-dot--corridor">Corridor</span>
-        </div>
-      </article>
-
-      <article class="hud-card hud-card--controls">
-        <p class="hud-title">Controls</p>
-        <p class="controls-line">Move: WASD or Arrow keys</p>
-        <p class="controls-line">Attack: Left click or Space</p>
-        <p class="controls-line">Potion: F or E</p>
-        <p class="controls-line">Fullscreen: button or F11 browser mode</p>
-
-        <div class="controls-actions">
-          <q-btn
-            flat
-            no-caps
-            color="primary"
-            :icon="isFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-            :label="isFullscreen ? 'Exit fullscreen' : 'Go fullscreen'"
-            :disable="!fullscreenAvailable"
-            @click="toggleFullscreen"
-          />
-        </div>
+        <p class="hud-hint">Move WASD · Attack click/space · Potion F/E</p>
       </article>
     </div>
   </section>
@@ -262,7 +279,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { WORLD } from 'src/games/labyrinthus/config'
+import { PLAYER_DEFAULT_LOADOUT_ID, PLAYER_LOADOUTS, WORLD } from 'src/games/labyrinthus/config'
 import { createLabyrinthusEngine } from 'src/games/labyrinthus/engine'
 
 const BEST_SCORE_KEY = 'labyrinthus-best-score'
@@ -274,6 +291,8 @@ const gameState = ref(createInitialState())
 const isFullscreen = ref(false)
 const fullscreenAvailable = ref(false)
 const bestScore = ref(0)
+const selectedLoadoutId = ref(PLAYER_DEFAULT_LOADOUT_ID)
+const loadouts = PLAYER_LOADOUTS
 
 const healthRatio = computed(() => {
   if (!gameState.value.player) {
@@ -285,6 +304,16 @@ const healthRatio = computed(() => {
 const roundedHp = computed(() => Math.round(gameState.value.player?.hp || 0))
 const roundedMaxHp = computed(() => Math.round(gameState.value.player?.maxHp || 0))
 const roundedDamage = computed(() => Math.round(gameState.value.player?.damage || 0))
+const selectedLoadout = computed(
+  () => loadouts.find((loadout) => loadout.id === selectedLoadoutId.value) || loadouts[0],
+)
+const currentWeaponLabel = computed(
+  () => gameState.value.player?.weaponTitle || selectedLoadout.value?.title || 'Unarmed',
+)
+const currentRoomLabel = computed(() => gameState.value.room?.typeLabel || 'Awaiting run')
+const currentAttackStyleLabel = computed(() =>
+  gameState.value.player?.attackKind === 'projectile' ? 'Ranged' : 'Melee',
+)
 
 const critChanceLabel = computed(
   () => `${Math.round((gameState.value.player?.critChance || 0) * 100)}%`,
@@ -293,36 +322,6 @@ const critChanceLabel = computed(
 const attackCooldownLabel = computed(
   () => `${(gameState.value.player?.attackCooldown || 0).toFixed(2)}s`,
 )
-
-const roomPosition = computed(() => {
-  if (!gameState.value.room) {
-    return 'Position: --'
-  }
-  return `Position: ${gameState.value.room.coords.x}, ${gameState.value.room.coords.y}`
-})
-
-const roomDoors = computed(() => {
-  const room = gameState.value.room
-  if (!room) {
-    return '--'
-  }
-  const labels = []
-  if (room.doors.north) labels.push('N')
-  if (room.doors.east) labels.push('E')
-  if (room.doors.south) labels.push('S')
-  if (room.doors.west) labels.push('W')
-  return labels.join(' / ') || 'None'
-})
-
-const roomSafetyRatio = computed(() => {
-  if (!gameState.value.room || gameState.value.room.cleared) {
-    return 1
-  }
-
-  const baseline = Math.max(1, 4 + Math.floor(gameState.value.stats.roomsCleared * 0.45))
-  const pressure = Math.min(1, gameState.value.enemiesRemaining / baseline)
-  return 1 - pressure
-})
 
 const runSeedLabel = computed(() => {
   if (!gameState.value.runSeed) {
@@ -377,6 +376,68 @@ const minimapData = computed(() => {
 
 const minimapCells = computed(() => minimapData.value.cells)
 const exploredRooms = computed(() => minimapData.value.cells.length)
+const roomPositionLabel = computed(() => {
+  const room = gameState.value.room
+  if (!room) {
+    return '--'
+  }
+
+  return `${room.coords.x}, ${room.coords.y}`
+})
+
+const roomDoorsLabel = computed(() => {
+  const room = gameState.value.room
+  if (!room) {
+    return '--'
+  }
+
+  const labels = []
+  if (room.doors.north) labels.push('N')
+  if (room.doors.east) labels.push('E')
+  if (room.doors.south) labels.push('S')
+  if (room.doors.west) labels.push('W')
+  return labels.join(' / ') || 'None'
+})
+
+const roomThreatLabel = computed(() => {
+  const room = gameState.value.room
+  if (!room) {
+    return 'Dormant'
+  }
+
+  if (room.cleared) {
+    return 'Cleared'
+  }
+
+  const enemies = gameState.value.enemiesRemaining
+  return enemies === 1 ? '1 enemy' : `${enemies} enemies`
+})
+
+const combatStats = computed(() => [
+  { label: 'Damage', value: roundedDamage.value },
+  { label: 'Crit', value: critChanceLabel.value },
+  { label: 'Cooldown', value: attackCooldownLabel.value },
+  { label: 'Style', value: currentAttackStyleLabel.value, tone: 'accent' },
+])
+
+const runMetrics = computed(() => [
+  { label: 'Rooms', value: gameState.value.stats.roomsCleared },
+  { label: 'Kills', value: gameState.value.stats.kills },
+  { label: 'Coins', value: gameState.value.stats.coins, tone: 'gold' },
+  { label: 'Relics', value: gameState.value.stats.relics, tone: 'arcane' },
+  { label: 'Potions', value: gameState.value.stats.potions, tone: 'life' },
+])
+
+const roomMetaChips = computed(() => [
+  { label: 'Position', value: roomPositionLabel.value },
+  {
+    label: 'Threat',
+    value: roomThreatLabel.value,
+    tone: gameState.value.room?.cleared ? 'life' : 'danger',
+  },
+  { label: 'Doors', value: roomDoorsLabel.value },
+  { label: 'Explored', value: exploredRooms.value },
+])
 
 const minimapStyle = computed(() => ({
   gridTemplateColumns: `repeat(${minimapData.value.cols}, var(--minimap-cell-size))`,
@@ -409,6 +470,9 @@ onMounted(() => {
     canvas: canvasRef.value,
     onStateChange: (snapshot) => {
       gameState.value = snapshot
+      if (snapshot.player?.weaponId) {
+        selectedLoadoutId.value = snapshot.player.weaponId
+      }
     },
   })
 
@@ -466,8 +530,8 @@ function minimapCellClass(cell) {
   }
 }
 
-function startGame() {
-  engine.value?.startRun()
+function startGame(loadoutId = selectedLoadoutId.value) {
+  engine.value?.startRun(loadoutId)
 }
 
 function restartGame() {
@@ -516,11 +580,17 @@ function syncFullscreenState() {
 
 <style scoped lang="scss">
 .labyrinthus {
-  border-radius: 22px;
-  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 212, 148, 0.18);
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(9, 22, 39, 0.16), rgba(9, 22, 39, 0.03)), var(--surface-card);
+    linear-gradient(180deg, rgba(42, 25, 30, 0.96), rgba(18, 12, 22, 0.96)), var(--surface-card);
+  box-shadow: 0 24px 46px rgba(0, 0, 0, 0.32);
+}
+
+.labyrinthus :deep(.q-btn) {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.02em;
 }
 
 .labyrinthus__header {
@@ -560,9 +630,9 @@ function syncFullscreenState() {
 }
 
 .labyrinthus__stage {
-  border-top: 1px solid var(--border-soft);
-  border-bottom: 1px solid var(--border-soft);
-  background: #071122;
+  border-top: 1px solid rgba(255, 212, 148, 0.16);
+  border-bottom: 1px solid rgba(255, 212, 148, 0.16);
+  background: #090510;
 }
 
 .stage-toolbar {
@@ -571,24 +641,25 @@ function syncFullscreenState() {
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(138, 171, 218, 0.22);
-  background: linear-gradient(180deg, rgba(10, 20, 36, 0.95), rgba(7, 16, 30, 0.92));
+  border-bottom: 1px solid rgba(255, 212, 148, 0.12);
+  background: linear-gradient(180deg, rgba(41, 23, 30, 0.96), rgba(20, 12, 20, 0.94));
 }
 
 .stage-pill {
   margin: 0;
   padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(161, 194, 238, 0.28);
-  background: rgba(10, 22, 40, 0.7);
-  color: #d8e7ff;
-  font-size: 0.78rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 214, 153, 0.2);
+  background: rgba(24, 14, 22, 0.84);
+  color: #f7e6ca;
+  font-size: 0.72rem;
   font-weight: 600;
+  font-family: var(--font-pixel);
 }
 
 .labyrinthus__arena {
   position: relative;
-  background: #040a14;
+  background: #090510;
 }
 
 .labyrinthus__canvas {
@@ -596,6 +667,8 @@ function syncFullscreenState() {
   width: 100%;
   max-width: 100%;
   aspect-ratio: 1200 / 720;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .labyrinthus__overlay {
@@ -604,19 +677,20 @@ function syncFullscreenState() {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(4, 12, 24, 0.56);
+  background: rgba(11, 6, 15, 0.68);
   backdrop-filter: blur(4px);
 }
 
 .overlay-card {
   width: min(560px, 94%);
-  border-radius: 16px;
-  border: 1px solid rgba(147, 186, 234, 0.28);
-  background: linear-gradient(180deg, rgba(17, 33, 56, 0.96), rgba(11, 24, 42, 0.96));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 218, 163, 0.24);
+  background: linear-gradient(180deg, rgba(49, 29, 35, 0.96), rgba(22, 14, 20, 0.98));
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
 }
 
 .overlay-card :deep(.q-card__section) {
-  color: #dce8fb;
+  color: #f6e8d4;
 }
 
 .overlay-card--large {
@@ -625,25 +699,114 @@ function syncFullscreenState() {
 
 .overlay-title {
   margin: 0 0 8px;
-  color: #f4f9ff;
+  color: #fff1d7;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
 .overlay-text {
   margin: 0;
-  color: rgba(218, 232, 250, 0.9);
+  color: rgba(246, 232, 212, 0.84);
 }
 
 .overlay-tags {
   margin-top: 12px;
   display: grid;
   gap: 6px;
-  font-size: 0.86rem;
-  color: rgba(221, 235, 255, 0.86);
+  font-size: 0.8rem;
+  color: rgba(246, 232, 212, 0.82);
 }
 
 .overlay-action {
   margin-top: 14px;
+  border-radius: 8px;
+}
+
+.overlay-selection {
+  margin: 14px 0 0;
+  color: #ffedca;
+  font-family: var(--font-pixel);
+  font-size: 0.72rem;
+}
+
+.loadout-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.loadout-card {
+  border: 1px solid rgba(255, 218, 163, 0.16);
+  border-radius: 8px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(56, 34, 39, 0.92), rgba(23, 14, 20, 0.96));
+  color: #f7ecd8;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.loadout-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 228, 177, 0.38);
+}
+
+.loadout-card--active {
+  border-color: rgba(148, 236, 202, 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(148, 236, 202, 0.22),
+    0 0 18px rgba(93, 190, 155, 0.18);
+}
+
+.loadout-card__eyebrow,
+.loadout-card__title,
+.loadout-card__desc {
+  margin: 0;
+}
+
+.loadout-card__eyebrow {
+  color: #8ff0d1;
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.loadout-card__title {
+  margin-top: 8px;
+  color: #fff2d3;
+  font-family: var(--font-pixel);
+  font-size: 0.78rem;
+}
+
+.loadout-card__desc {
+  margin-top: 8px;
+  min-height: 60px;
+  color: rgba(247, 236, 216, 0.84);
+  font-size: 0.84rem;
+}
+
+.loadout-card__stats {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.loadout-card__stats span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 7px;
   border-radius: 999px;
+  background: rgba(255, 236, 193, 0.08);
+  color: #f4ddb0;
+  font-family: var(--font-pixel);
+  font-size: 0.58rem;
 }
 
 .upgrade-grid {
@@ -654,20 +817,23 @@ function syncFullscreenState() {
 }
 
 .upgrade-card {
-  border-radius: 12px;
-  border: 1px solid rgba(157, 191, 236, 0.24);
-  background: linear-gradient(180deg, rgba(16, 33, 55, 0.92), rgba(11, 21, 38, 0.92));
+  border-radius: 8px;
+  border: 1px solid rgba(255, 218, 163, 0.2);
+  background: linear-gradient(180deg, rgba(58, 35, 40, 0.92), rgba(24, 14, 20, 0.94));
 }
 
 .upgrade-title {
   margin: 0 0 5px;
   font-weight: 700;
-  color: #f4f8ff;
+  color: #fff0d0;
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .upgrade-desc {
   margin: 0 0 10px;
-  color: rgba(219, 232, 250, 0.9);
+  color: rgba(246, 232, 212, 0.82);
   min-height: 44px;
 }
 
@@ -705,11 +871,13 @@ function syncFullscreenState() {
   top: 16px;
   transform: translateX(-50%);
   padding: 9px 14px;
-  border-radius: 11px;
-  border: 1px solid rgba(164, 196, 241, 0.35);
-  color: #ecf4ff;
-  background: rgba(6, 20, 39, 0.8);
+  border-radius: 7px;
+  border: 1px solid rgba(255, 218, 163, 0.32);
+  color: #fff0d2;
+  background: rgba(24, 14, 22, 0.88);
   font-weight: 600;
+  font-family: var(--font-pixel);
+  font-size: 0.7rem;
 }
 
 .fullscreen-hud {
@@ -724,12 +892,12 @@ function syncFullscreenState() {
 
 .fullscreen-health,
 .fullscreen-map {
-  border-radius: 10px;
-  border: 1px solid rgba(164, 196, 241, 0.34);
-  background: rgba(6, 20, 39, 0.74);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 214, 153, 0.26);
+  background: rgba(24, 14, 22, 0.82);
   backdrop-filter: blur(3px);
   padding: 8px 10px;
-  color: #ecf4ff;
+  color: #fff0d2;
 }
 
 .fullscreen-health {
@@ -744,15 +912,23 @@ function syncFullscreenState() {
 
 .fullscreen-health__title,
 .fullscreen-map__title {
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(205, 222, 245, 0.88);
+  color: rgba(255, 225, 188, 0.88);
+  font-family: var(--font-pixel);
 }
 
 .fullscreen-health__value {
   margin-top: 2px;
   font-weight: 700;
+}
+
+.fullscreen-health__weapon {
+  margin: 4px 0 0;
+  color: #8ff0d1;
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
 }
 
 .fullscreen-health__bar {
@@ -767,7 +943,7 @@ function syncFullscreenState() {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #38d39f, #9af5ce);
+  background: linear-gradient(90deg, #4fdc8b, #f4d074);
 }
 
 .minimap--fullscreen {
@@ -794,114 +970,237 @@ function syncFullscreenState() {
 }
 
 .labyrinthus__hud {
-  padding: 14px;
+  padding: 12px 14px 14px;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.88fr);
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(16, 10, 18, 0.96), rgba(12, 8, 16, 0.98));
+}
+
+.hud-stack {
+  display: grid;
   gap: 10px;
 }
 
-.hud-card {
-  border-radius: 12px;
-  border: 1px solid var(--border-soft);
+.hud-panel {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 214, 153, 0.14);
   background:
-    linear-gradient(180deg, rgba(20, 41, 67, 0.1), rgba(20, 41, 67, 0.03)), var(--surface-soft);
-  padding: 11px 12px;
+    linear-gradient(180deg, rgba(39, 24, 30, 0.8), rgba(16, 11, 18, 0.92)),
+    rgba(22, 15, 24, 0.88);
+  padding: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 227, 185, 0.03);
 }
 
-.hud-card--health,
-.hud-card--stats,
-.hud-card--room {
-  grid-column: span 4;
+.hud-panel--vitals {
+  background:
+    radial-gradient(circle at right top, rgba(83, 186, 255, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(31, 23, 30, 0.9), rgba(15, 11, 17, 0.94));
 }
 
-.hud-card--map {
-  grid-column: span 7;
+.hud-panel--run {
+  background:
+    radial-gradient(circle at left center, rgba(246, 199, 113, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(30, 21, 26, 0.88), rgba(15, 11, 17, 0.94));
 }
 
-.hud-card--controls {
-  grid-column: span 5;
+.hud-panel--room {
+  display: grid;
+  align-content: start;
 }
 
-.hud-head {
+.hud-panel__top {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 8px;
+  gap: 10px;
 }
 
-.hud-title {
+.hud-label {
   margin: 0;
-  font-weight: 700;
-  color: var(--text-primary);
+  color: rgba(224, 196, 160, 0.72);
+  font-family: var(--font-pixel);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.hud-value {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.84rem;
+.hud-primary {
+  margin: 6px 0 0;
+  color: #fff0d3;
+  font-family: var(--font-pixel);
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
-.hud-line-grid {
+.hud-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 228, 193, 0.24);
+  background: rgba(74, 155, 125, 0.1);
+  color: #95efcf;
+  font-family: var(--font-pixel);
+  font-size: 0.58rem;
+  white-space: nowrap;
+}
+
+.hud-badge--soft {
+  border-color: rgba(255, 214, 153, 0.16);
+  background: rgba(255, 214, 153, 0.06);
+  color: #f0dbb4;
+}
+
+.hud-healthbar {
   margin-top: 10px;
-  display: grid;
-  gap: 5px;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(97, 71, 64, 0.38);
 }
 
-.hud-line-grid p {
-  margin: 0;
+.hud-healthbar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #59d98e, #f2c86b);
+}
+
+.hud-chip-row {
+  margin-top: 12px;
   display: flex;
-  justify-content: space-between;
-  color: var(--text-primary);
-  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.hud-line-grid span {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.room-label,
-.room-pos,
-.room-doors,
-.controls-line {
-  margin: 2px 0;
-  color: var(--text-secondary);
-}
-
-.room-threat {
-  margin-top: 8px;
+.hud-chip {
+  min-width: 0;
   display: grid;
-  gap: 6px;
+  gap: 3px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 214, 153, 0.12);
+  background: rgba(255, 244, 224, 0.04);
 }
 
-.room-threat__label,
-.room-threat__value {
-  margin: 0;
+.hud-chip--accent {
+  border-color: rgba(139, 228, 193, 0.2);
+  background: rgba(139, 228, 193, 0.08);
 }
 
-.room-threat__label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+.hud-chip--gold {
+  border-color: rgba(244, 207, 101, 0.18);
+  background: rgba(244, 207, 101, 0.08);
 }
 
-.room-threat__value {
-  color: var(--text-primary);
+.hud-chip--arcane {
+  border-color: rgba(143, 187, 255, 0.22);
+  background: rgba(143, 187, 255, 0.08);
+}
+
+.hud-chip--life {
+  border-color: rgba(95, 227, 142, 0.18);
+  background: rgba(95, 227, 142, 0.08);
+}
+
+.hud-chip--danger {
+  border-color: rgba(255, 120, 120, 0.18);
+  background: rgba(255, 120, 120, 0.08);
+}
+
+.hud-chip--quiet {
+  background: rgba(255, 244, 224, 0.03);
+}
+
+.hud-chip__label {
+  color: rgba(220, 189, 151, 0.7);
+  font-size: 0.64rem;
+  line-height: 1;
+}
+
+.hud-chip__value {
+  color: #f7ebd4;
   font-weight: 700;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.hud-metrics-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hud-metric {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 214, 153, 0.12);
+  background: rgba(255, 244, 224, 0.04);
+}
+
+.hud-metric--gold {
+  border-color: rgba(244, 207, 101, 0.18);
+}
+
+.hud-metric--arcane {
+  border-color: rgba(143, 187, 255, 0.22);
+}
+
+.hud-metric--life {
+  border-color: rgba(95, 227, 142, 0.18);
+}
+
+.hud-metric__label {
+  display: block;
+  color: rgba(220, 189, 151, 0.72);
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hud-metric__value {
+  display: block;
+  margin-top: 5px;
+  color: #fff0d3;
+  font-family: var(--font-pixel);
+  font-size: 0.76rem;
+}
+
+.hud-inline-action {
+  border: 1px solid rgba(255, 214, 153, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.minimap--hud {
+  --minimap-cell-size: 12px;
+  --minimap-gap: 3px;
+  margin-top: 12px;
+  padding: 7px;
+}
+
+.hud-hint {
+  margin: 12px 0 0;
+  color: rgba(222, 204, 180, 0.72);
+  font-size: 0.74rem;
+  line-height: 1.5;
 }
 
 .minimap {
   --minimap-cell-size: 14px;
   --minimap-gap: 4px;
-  --minimap-corridor-color: rgba(151, 188, 239, 0.88);
+  --minimap-corridor-color: rgba(255, 214, 153, 0.9);
   margin-top: 8px;
   display: grid;
   gap: var(--minimap-gap);
   width: fit-content;
   max-width: 100%;
   padding: 8px;
-  border-radius: 10px;
-  border: 1px solid rgba(130, 165, 213, 0.28);
-  background: linear-gradient(180deg, rgba(12, 27, 46, 0.2), rgba(12, 27, 46, 0.08));
+  border-radius: 8px;
+  border: 1px solid rgba(255, 214, 153, 0.18);
+  background: linear-gradient(180deg, rgba(30, 19, 24, 0.48), rgba(20, 13, 19, 0.24));
   align-content: start;
 }
 
@@ -909,38 +1208,38 @@ function syncFullscreenState() {
   position: relative;
   width: var(--minimap-cell-size);
   height: var(--minimap-cell-size);
-  border-radius: 3px;
-  border: 1px solid rgba(139, 168, 212, 0.45);
-  background: rgba(96, 130, 177, 0.45);
-  box-shadow: inset 0 0 0 1px rgba(9, 18, 33, 0.2);
+  border-radius: 2px;
+  border: 1px solid rgba(59, 34, 30, 0.65);
+  background: rgba(156, 116, 85, 0.52);
+  box-shadow: inset 0 0 0 1px rgba(20, 12, 20, 0.25);
   transition: transform 0.16s ease;
 }
 
 .minimap-cell--visited {
-  background: rgba(124, 158, 205, 0.62);
+  background: rgba(201, 157, 106, 0.68);
 }
 
 .minimap-cell--cleared {
-  background: rgba(68, 210, 164, 0.56);
+  background: rgba(101, 222, 155, 0.74);
 }
 
 .minimap-cell--elite {
-  background: rgba(255, 118, 118, 0.64);
+  background: rgba(255, 116, 116, 0.78);
 }
 
 .minimap-cell--treasure {
-  background: rgba(244, 207, 101, 0.66);
+  background: rgba(255, 215, 99, 0.82);
 }
 
 .minimap-cell--start {
-  background: rgba(113, 213, 191, 0.7);
+  background: rgba(132, 228, 200, 0.82);
 }
 
 .minimap-cell--current {
   border-color: #ffffff;
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.4),
-    0 0 14px rgba(180, 219, 255, 0.65);
+    0 0 14px rgba(255, 225, 165, 0.65);
   transform: scale(1.06);
   z-index: 2;
 }
@@ -975,58 +1274,6 @@ function syncFullscreenState() {
   transform: translateX(-50%);
 }
 
-.minimap-legend {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-}
-
-.legend-dot {
-  position: relative;
-  padding-left: 14px;
-}
-
-.legend-dot::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  transform: translateY(-50%);
-}
-
-.legend-dot--current::before {
-  background: #ffffff;
-}
-
-.legend-dot--normal::before {
-  background: rgba(124, 158, 205, 0.85);
-}
-
-.legend-dot--elite::before {
-  background: rgba(255, 118, 118, 0.9);
-}
-
-.legend-dot--treasure::before {
-  background: rgba(244, 207, 101, 0.9);
-}
-
-.legend-dot--corridor::before {
-  width: 11px;
-  height: 4px;
-  border-radius: 99px;
-  background: rgba(151, 188, 239, 0.95);
-}
-
-.controls-actions {
-  margin-top: 10px;
-}
-
 .labyrinthus__stage--fullscreen,
 .labyrinthus__stage:fullscreen {
   width: 100vw;
@@ -1034,8 +1281,8 @@ function syncFullscreenState() {
   padding: 14px;
   box-sizing: border-box;
   background:
-    radial-gradient(circle at 20% 20%, rgba(65, 140, 255, 0.16), transparent 30%),
-    radial-gradient(circle at 80% 80%, rgba(69, 221, 176, 0.14), transparent 28%), #040916;
+    radial-gradient(circle at 20% 20%, rgba(255, 190, 118, 0.14), transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(69, 221, 176, 0.1), transparent 28%), #090510;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 10px;
@@ -1043,14 +1290,14 @@ function syncFullscreenState() {
 
 .labyrinthus__stage--fullscreen .stage-toolbar,
 .labyrinthus__stage:fullscreen .stage-toolbar {
-  border: 1px solid rgba(157, 191, 237, 0.27);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 214, 153, 0.2);
+  border-radius: 8px;
 }
 
 .labyrinthus__stage--fullscreen .labyrinthus__arena,
 .labyrinthus__stage:fullscreen .labyrinthus__arena {
-  border: 1px solid rgba(157, 191, 237, 0.27);
-  border-radius: 14px;
+  border: 1px solid rgba(255, 214, 153, 0.2);
+  border-radius: 10px;
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -1064,15 +1311,12 @@ function syncFullscreenState() {
 }
 
 @media (max-width: 1200px) {
-  .hud-card--health,
-  .hud-card--stats,
-  .hud-card--room {
-    grid-column: span 6;
+  .labyrinthus__hud {
+    grid-template-columns: 1fr;
   }
 
-  .hud-card--map,
-  .hud-card--controls {
-    grid-column: span 6;
+  .hud-metrics-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
@@ -1081,20 +1325,17 @@ function syncFullscreenState() {
     flex-direction: column;
   }
 
+  .loadout-grid,
   .upgrade-grid {
     grid-template-columns: 1fr;
   }
 
   .labyrinthus__hud {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
-  .hud-card--health,
-  .hud-card--stats,
-  .hud-card--room,
-  .hud-card--map,
-  .hud-card--controls {
-    grid-column: span 1;
+  .hud-metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1106,6 +1347,15 @@ function syncFullscreenState() {
 
   .stage-pill {
     font-size: 0.72rem;
+  }
+
+  .hud-panel__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hud-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
