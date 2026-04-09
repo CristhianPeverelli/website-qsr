@@ -38,6 +38,21 @@
     padding-top: 0;
   }
 
+  .hero-intro {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hero-portrait {
+    width: min(180px, 48vw);
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .hero-portrait__image {
+    border-radius: 14px;
+  }
+
   .portfolio-page::after {
     opacity: 0.2;
     background-size: 52px 52px;

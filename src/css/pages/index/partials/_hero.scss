@@ -21,6 +21,34 @@
   padding-top: 0;
 }
 
+.hero-intro {
+  max-width: 680px;
+  display: grid;
+  grid-template-columns: clamp(132px, 16vw, 168px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.hero-portrait {
+  width: 100%;
+  align-self: start;
+  padding: 10px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--surface-elevated), var(--surface-soft));
+}
+
+.hero-portrait__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center 22%;
+  border-radius: 18px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+}
+
 .hero-title {
   font-family: var(--font-title);
   font-size: clamp(1.95rem, 4vw, 3.3rem);
@@ -29,8 +57,9 @@
 }
 
 .hero-lead {
-  max-width: 58ch;
-  margin-top: 20px;
+  margin: 0;
+  min-width: 0;
+  align-self: center;
   color: var(--text-secondary);
   font-size: 1.05rem;
   line-height: 1.7;

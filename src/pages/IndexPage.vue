@@ -11,10 +11,19 @@
             It doesn't matter who disappears, everyone is interested in the man who comes out on the
             other side.
           </h1>
-          <p class="hero-lead">
-            I am Cristhian Peverelli, a developer and IT technician from Italy. I design and ship
-            software with clean architecture, maintainable code, and polished user experience.
-          </p>
+          <div class="hero-intro">
+            <div class="surface-card hero-portrait">
+              <img
+                class="hero-portrait__image"
+                :src="profilePhoto"
+                alt="Portrait of Cristhian Peverelli"
+              />
+            </div>
+            <p class="hero-lead">
+              I am Cristhian Peverelli, a developer and IT technician from Italy. I design and ship
+              software with clean architecture, maintainable code, and polished user experience.
+            </p>
+          </div>
 
           <div class="hero-actions">
             <q-btn
@@ -68,9 +77,7 @@
 
         <div class="hero-side">
           <InteractiveIcosahedron />
-          <p class="hero-icosa-note">
-            A living icosahedron inspired by fantasy worlds. Rotate it freely and shape its energy.
-          </p>
+          <p class="hero-icosa-note">A living icosahedron inspired by fantasy RPG dices.</p>
         </div>
       </div>
     </section>
@@ -469,6 +476,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useMeta } from 'quasar'
 import { useRouter } from 'vue-router'
 import InteractiveIcosahedron from 'src/components/InteractiveIcosahedron.vue'
+import profilePhoto from 'src/assets/profile-photo.jpg'
 
 const router = useRouter()
 

@@ -23,8 +23,8 @@
     </div>
 
     <div class="icosa-overlay">
-      <p class="icosa-title">Arcane Icosahedron</p>
-      <p class="icosa-hint">Drag to rotate, scroll to zoom, roll to cast fate</p>
+      <p class="icosa-title">Icosahedron</p>
+      <p class="icosa-hint">Drag to rotate, scroll to zoom, click to roll.</p>
     </div>
   </div>
 </template>
