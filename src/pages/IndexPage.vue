@@ -39,7 +39,7 @@
               color="secondary"
               label="Play my games"
               class="pill-btn"
-              @click="openGamePanel"
+              @click="toggleGamePanel"
             />
           </div>
 
@@ -300,18 +300,18 @@
       <div class="section-shell">
         <header class="section-header">
           <p class="section-kicker">Contact</p>
-          <h2 class="section-title">Let us build something valuable.</h2>
+          <h2 class="section-title">Don't be scared to reach out.</h2>
         </header>
 
         <div class="contact-grid">
           <q-card flat class="surface-card contact-card">
             <q-card-section>
-              <h3 class="card-title">Direct channels</h3>
+              <h3 class="card-title">Usefuls channels</h3>
 
               <div class="contact-list">
                 <a class="contact-item" href="mailto:cristhian.peverelli@gmail.com">
                   <q-icon name="mail" size="20px" />
-                  <span>cristhian.peverelli@gmail.com</span>
+                  <span>cristhian [dot] peverelli [at] gmail [dot] com</span>
                 </a>
                 <a
                   class="contact-item"
@@ -409,7 +409,7 @@
       <q-card flat class="surface-card games-panel">
         <q-card-section class="games-panel__head">
           <p class="games-panel__kicker">Playable games</p>
-          <h3 class="games-panel__title">Choose a game to open</h3>
+          <q-btn flat class="games-panel__close-btn" :icon="'close'" @click="toggleGamePanel" />
           <p class="games-panel__text">
             A catalog of some browser-ready games I've developed. You can try them out directly or
             check their repositories for code reference.
@@ -596,8 +596,8 @@ const timelineItems = [
 
 const projectFilters = [
   { id: 'all', label: 'All' },
-  { id: 'web', label: 'Web Apps' },
   { id: 'game', label: 'Game Dev' },
+  { id: 'web', label: 'Web Apps' },
   { id: 'algorithms', label: 'Algorithms' },
   { id: 'hardware', label: 'Hardware' },
 ]
@@ -610,11 +610,24 @@ const playableGames = [
     badge: 'Playable on site',
     description:
       'A pixel fantasy roguelite with procedural rooms, weapon loadouts, upgrades, and score-driven runs.',
-    actionLabel: 'Open Labyrinthus',
-    actionIcon: 'sports_esports',
+    actionLabel: 'Play',
+    actionIcon: 'sports_martial_arts',
     destinationType: 'route',
     destination: '/labyrinthus',
     theme: 'dungeon',
+  },
+  {
+    id: 'delta-e',
+    title: 'Delta - E',
+    label: 'Color puzzle',
+    badge: 'Playable on site',
+    description:
+      'A minimalist color-memory puzzle with LCH generation and Delta E validation, fast-paced gameplay.',
+    actionLabel: 'Play',
+    actionIcon: 'color_lens',
+    destinationType: 'route',
+    destination: '/delta-e',
+    theme: 'puzzle',
   },
   {
     id: 'pevefast',
@@ -623,8 +636,8 @@ const playableGames = [
     badge: 'WebGL demo',
     description:
       'A fast-paced 3D endless runner built in Unity, focused on speed, reflexes, and immediate browser play.',
-    actionLabel: 'Play Pevefast',
-    actionIcon: 'open_in_new',
+    actionLabel: 'Play',
+    actionIcon: 'directions_run',
     destinationType: 'external',
     destination: 'https://cristhianpeverelli.github.io/pevefast/',
     theme: 'runner',
@@ -633,25 +646,27 @@ const playableGames = [
 
 const projects = [
   {
-    title: 'Delta - E',
+    title: 'Labyrinthus',
     category: 'game',
-    status: 'New interactive release',
+    status: 'My main game project',
     summary:
-      'Minimal color-memory puzzle built in Quasar with perceptual LCH generation and Delta E validation through colorjs.io.',
-    stack: ['Vue 3', 'Quasar', 'colorjs.io', 'SCSS'],
+      'A fantasy roguelite built into the portfolio with procedural rooms, selectable weapons, and run-based progression.',
+    stack: ['Vue 3', 'Quasar', 'Canvas', 'Game Engine', 'Sprite', '2025-2026'],
     live: '',
-    liveRoute: '/delta-e',
+    liveRoute: '/labyrinthus',
     liveLabel: 'Play now',
     repo: 'https://github.com/CristhianPeverelli/website-qsr',
   },
   {
-    title: 'Labyrinthus',
+    title: 'Delta - E',
     category: 'game',
-    status: 'Playable on site',
+    status: 'Experimental puzzle',
     summary:
-      'A fantasy roguelite built into the portfolio with procedural rooms, selectable weapons, and run-based progression.',
-    stack: ['Vue 3', 'Quasar', 'Canvas', 'Game Systems'],
-    live: '/labyrinthus',
+      'Minimal color-memory puzzle with perceptual LCH generation and Delta E validation through colorjs.io.',
+    stack: ['Vue 3', 'Quasar', 'colorjs.io', 'Canvas', 'SCSS', '2026'],
+    live: '',
+    liveRoute: '/delta-e',
+    liveLabel: 'Play now',
     repo: 'https://github.com/CristhianPeverelli/website-qsr',
   },
   {
@@ -660,7 +675,7 @@ const projects = [
     status: 'Playable demo',
     summary:
       '3D endless-runner developed in Unity and exported to WebGL for instant browser access.',
-    stack: ['Unity', 'C#', 'Blender', 'WebGL'],
+    stack: ['Unity', 'C#', 'Blender', 'WebGL', '2019-2020'],
     live: 'https://cristhianpeverelli.github.io/pevefast/',
     repo: 'https://github.com/CristhianPeverelli/Pevefast-scripts',
   },
@@ -686,8 +701,7 @@ const projects = [
     title: 'CodeWars Kata Archive',
     category: 'algorithms',
     status: 'Public repository',
-    summary:
-      'Curated set of kata solutions to train algorithmic thinking and implementation speed.',
+    summary: 'Set of my kata solutions to train algorithmic thinking and implementation speed.',
     stack: ['Java', 'Algorithms'],
     live: '',
     repo: 'https://github.com/CristhianPeverelli/Codewars-Challenge',
@@ -697,7 +711,7 @@ const projects = [
     category: 'hardware',
     status: 'University project',
     summary: 'Game simulation implemented only with digital logic circuits and hardware reasoning.',
-    stack: ['Logisim', 'Digital Design'],
+    stack: ['Logisim', 'Digital Design', '2021'],
     live: '',
     repo: 'https://github.com/CristhianPeverelli/Logisim-Tris-Project',
   },
@@ -705,8 +719,9 @@ const projects = [
     title: 'Pevefast Scripts',
     category: 'game',
     status: 'Code reference',
-    summary: 'Detailed script repository used for gameplay systems and legacy experiments.',
-    stack: ['C#', 'Unity'],
+    summary:
+      'Detailed script repository used for gameplay systems and legacy experiments on Pevefast.',
+    stack: ['C#', 'Unity', '2019-2020'],
     live: '',
     repo: 'https://github.com/CristhianPeverelli/Pevefast-scripts',
   },
@@ -730,7 +745,7 @@ const gamePanelOpen = ref(false)
 const contactForm = reactive({
   name: '',
   email: '',
-  subject: 'Collaboration request',
+  subject: 'Hi! I would like to get in touch with you',
   message: '',
 })
 
@@ -775,8 +790,8 @@ function scrollTo(id) {
   }
 }
 
-function openGamePanel() {
-  gamePanelOpen.value = true
+function toggleGamePanel() {
+  gamePanelOpen.value = !gamePanelOpen.value
 }
 
 function selectGame(game) {
