@@ -7,7 +7,10 @@
       <div class="section-shell hero-grid">
         <div class="hero-copy">
           <p class="section-kicker">Computer Science and Software Development</p>
-          <h1 class="hero-title">It doesn't matter who disappears, everyone is interested in the man who comes out on the other side.</h1>
+          <h1 class="hero-title">
+            It doesn't matter who disappears, everyone is interested in the man who comes out on the
+            other side.
+          </h1>
           <p class="hero-lead">
             I am Cristhian Peverelli, a developer and IT technician from Italy. I design and ship
             software with clean architecture, maintainable code, and polished user experience.
@@ -34,9 +37,9 @@
               unelevated
               no-caps
               color="secondary"
-              label="Try my new game"
+              label="Play my games"
               class="pill-btn"
-              @click="goToDeltaE"
+              @click="openGamePanel"
             />
           </div>
 
@@ -143,7 +146,12 @@
         </q-tabs>
 
         <div class="skills-grid">
-          <q-card v-for="skill in filteredSkills" :key="skill.name" flat class="surface-card skill-card">
+          <q-card
+            v-for="skill in filteredSkills"
+            :key="skill.name"
+            flat
+            class="surface-card skill-card"
+          >
             <q-card-section>
               <div class="skill-row">
                 <p class="skill-name">{{ skill.name }}</p>
@@ -180,7 +188,6 @@
               </q-timeline>
             </q-card-section>
           </q-card>
-
         </div>
       </div>
     </section>
@@ -224,7 +231,12 @@
         </div>
 
         <div class="projects-grid">
-          <q-card v-for="project in filteredProjects" :key="project.title" flat class="surface-card project-card">
+          <q-card
+            v-for="project in filteredProjects"
+            :key="project.title"
+            flat
+            class="surface-card project-card"
+          >
             <div class="project-ribbon" :class="`project-ribbon--${project.category}`" />
 
             <q-card-section>
@@ -370,7 +382,13 @@
                 />
 
                 <div class="form-actions">
-                  <q-btn type="submit" no-caps unelevated color="primary" :label="submitButtonLabel" />
+                  <q-btn
+                    type="submit"
+                    no-caps
+                    unelevated
+                    color="primary"
+                    :label="submitButtonLabel"
+                  />
                   <q-btn flat no-caps color="primary" label="Reset" @click="resetContactForm" />
                 </div>
               </q-form>
@@ -386,6 +404,52 @@
         <p>Built with Vue 3 and Quasar</p>
       </div>
     </footer>
+
+    <q-dialog v-model="gamePanelOpen">
+      <q-card flat class="surface-card games-panel">
+        <q-card-section class="games-panel__head">
+          <p class="games-panel__kicker">Playable games</p>
+          <h3 class="games-panel__title">Choose a game to open</h3>
+          <p class="games-panel__text">
+            A catalog of some browser-ready games I've developed. You can try them out directly or
+            check their repositories for code reference.
+          </p>
+        </q-card-section>
+
+        <q-card-section class="games-panel__body">
+          <div class="games-panel__grid">
+            <q-card
+              v-for="game in playableGames"
+              :key="game.id"
+              flat
+              class="games-panel-card"
+              :class="`games-panel-card--${game.theme}`"
+            >
+              <q-card-section>
+                <div class="games-panel-card__head">
+                  <p class="games-panel-card__eyebrow">{{ game.label }}</p>
+                  <q-badge color="secondary" text-color="white" outline>{{ game.badge }}</q-badge>
+                </div>
+
+                <h4 class="games-panel-card__title">{{ game.title }}</h4>
+                <p class="games-panel-card__description">{{ game.description }}</p>
+
+                <div class="games-panel-card__actions">
+                  <q-btn
+                    unelevated
+                    no-caps
+                    color="primary"
+                    :icon="game.actionIcon"
+                    :label="game.actionLabel"
+                    @click="selectGame(game)"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <q-page-sticky v-show="showBackToTop" position="bottom-right" :offset="[18, 18]">
       <q-btn
@@ -405,6 +469,8 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useMeta } from 'quasar'
 import { useRouter } from 'vue-router'
 import InteractiveIcosahedron from 'src/components/InteractiveIcosahedron.vue'
+
+const router = useRouter()
 
 useMeta(() => ({
   title: 'Cristhian Peverelli',
@@ -448,16 +514,61 @@ const skillCategories = [
 ]
 
 const skillItems = [
-  { name: 'Vue 3 + Quasar', level: 88, category: 'frontend', note: 'Component architecture and UI systems.' },
-  { name: 'HTML + SCSS', level: 90, category: 'frontend', note: 'Semantic markup, responsive layouts, and styling.' },
-  { name: 'JavaScript', level: 86, category: 'languages', note: 'Modern syntax, asynchronous flows, and tooling.' },
-  { name: 'C#', level: 78, category: 'languages', note: 'Game and app scripting in Unity environments.' },
-  { name: 'Java', level: 74, category: 'languages', note: 'Object-oriented design and problem solving.' },
-  { name: 'Golang', level: 70, category: 'languages', note: 'Learning practical backend-oriented patterns.' },
+  {
+    name: 'Vue 3 + Quasar',
+    level: 88,
+    category: 'frontend',
+    note: 'Component architecture and UI systems.',
+  },
+  {
+    name: 'HTML + SCSS',
+    level: 90,
+    category: 'frontend',
+    note: 'Semantic markup, responsive layouts, and styling.',
+  },
+  {
+    name: 'JavaScript',
+    level: 86,
+    category: 'languages',
+    note: 'Modern syntax, asynchronous flows, and tooling.',
+  },
+  {
+    name: 'C#',
+    level: 78,
+    category: 'languages',
+    note: 'Game and app scripting in Unity environments.',
+  },
+  {
+    name: 'Java',
+    level: 74,
+    category: 'languages',
+    note: 'Object-oriented design and problem solving.',
+  },
+  {
+    name: 'Golang',
+    level: 70,
+    category: 'languages',
+    note: 'Learning practical backend-oriented patterns.',
+  },
   { name: 'SQL', level: 67, category: 'backend', note: 'Query design and database reasoning.' },
-  { name: 'Git + GitHub', level: 84, category: 'tools', note: 'Branching, repository management, and collaboration.' },
-  { name: 'Unity + Blender', level: 76, category: 'tools', note: '3D game production and content integration.' },
-  { name: 'Linux + IT Support', level: 80, category: 'backend', note: 'Troubleshooting and system-level diagnostics.' },
+  {
+    name: 'Git + GitHub',
+    level: 84,
+    category: 'tools',
+    note: 'Branching, repository management, and collaboration.',
+  },
+  {
+    name: 'Unity + Blender',
+    level: 76,
+    category: 'tools',
+    note: '3D game production and content integration.',
+  },
+  {
+    name: 'Linux + IT Support',
+    level: 80,
+    category: 'backend',
+    note: 'Troubleshooting and system-level diagnostics.',
+  },
 ]
 
 const timelineItems = [
@@ -465,7 +576,8 @@ const timelineItems = [
     title: 'Bachelor in Computer Science',
     period: '2021 - 2025',
     organization: 'University of Milan "La Statale"',
-    description: 'Academic training in software engineering, algorithms, data management, and systems.',
+    description:
+      'Academic training in software engineering, algorithms, data management, and systems.',
   },
   {
     title: 'High School CS Diploma',
@@ -477,11 +589,10 @@ const timelineItems = [
     title: 'Independent Project Work',
     period: 'Ongoing',
     organization: 'Personal portfolio and coding platforms',
-    description: 'Continuous practice through projects, coding challenges, and iterative improvements.',
+    description:
+      'Continuous practice through projects, coding challenges, and iterative improvements.',
   },
 ]
-
-const router = useRouter()
 
 const projectFilters = [
   { id: 'all', label: 'All' },
@@ -489,6 +600,35 @@ const projectFilters = [
   { id: 'game', label: 'Game Dev' },
   { id: 'algorithms', label: 'Algorithms' },
   { id: 'hardware', label: 'Hardware' },
+]
+
+const playableGames = [
+  {
+    id: 'labyrinthus',
+    title: 'Labyrinthus',
+    label: 'Dungeon crawler',
+    badge: 'Playable on site',
+    description:
+      'A pixel fantasy roguelite with procedural rooms, weapon loadouts, upgrades, and score-driven runs.',
+    actionLabel: 'Open Labyrinthus',
+    actionIcon: 'sports_esports',
+    destinationType: 'route',
+    destination: '/labyrinthus',
+    theme: 'dungeon',
+  },
+  {
+    id: 'pevefast',
+    title: 'Pevefast',
+    label: 'Arcade runner',
+    badge: 'WebGL demo',
+    description:
+      'A fast-paced 3D endless runner built in Unity, focused on speed, reflexes, and immediate browser play.',
+    actionLabel: 'Play Pevefast',
+    actionIcon: 'open_in_new',
+    destinationType: 'external',
+    destination: 'https://cristhianpeverelli.github.io/pevefast/',
+    theme: 'runner',
+  },
 ]
 
 const projects = [
@@ -502,6 +642,16 @@ const projects = [
     live: '',
     liveRoute: '/delta-e',
     liveLabel: 'Play now',
+    repo: 'https://github.com/CristhianPeverelli/website-qsr',
+  },
+  {
+    title: 'Labyrinthus',
+    category: 'game',
+    status: 'Playable on site',
+    summary:
+      'A fantasy roguelite built into the portfolio with procedural rooms, selectable weapons, and run-based progression.',
+    stack: ['Vue 3', 'Quasar', 'Canvas', 'Game Systems'],
+    live: '/labyrinthus',
     repo: 'https://github.com/CristhianPeverelli/website-qsr',
   },
   {
@@ -536,7 +686,8 @@ const projects = [
     title: 'CodeWars Kata Archive',
     category: 'algorithms',
     status: 'Public repository',
-    summary: 'Curated set of kata solutions to train algorithmic thinking and implementation speed.',
+    summary:
+      'Curated set of kata solutions to train algorithmic thinking and implementation speed.',
     stack: ['Java', 'Algorithms'],
     live: '',
     repo: 'https://github.com/CristhianPeverelli/Codewars-Challenge',
@@ -574,6 +725,7 @@ const projectSearch = ref('')
 const emailCopied = ref(false)
 const submitButtonLabel = ref('Open email draft')
 const scrollPosition = ref(0)
+const gamePanelOpen = ref(false)
 
 const contactForm = reactive({
   name: '',
@@ -602,7 +754,8 @@ const filteredProjects = computed(() => {
     const categoryMatch =
       activeProjectFilter.value === 'all' || project.category === activeProjectFilter.value
 
-    const searchableText = `${project.title} ${project.summary} ${project.stack.join(' ')}`.toLowerCase()
+    const searchableText =
+      `${project.title} ${project.summary} ${project.stack.join(' ')}`.toLowerCase()
     const queryMatch = !query || searchableText.includes(query)
 
     return categoryMatch && queryMatch
@@ -622,8 +775,19 @@ function scrollTo(id) {
   }
 }
 
-function goToDeltaE() {
-  router.push('/delta-e')
+function openGamePanel() {
+  gamePanelOpen.value = true
+}
+
+function selectGame(game) {
+  gamePanelOpen.value = false
+
+  if (game.destinationType === 'route') {
+    router.push(game.destination)
+    return
+  }
+
+  window.open(game.destination, '_blank', 'noopener')
 }
 
 function onWindowScroll() {

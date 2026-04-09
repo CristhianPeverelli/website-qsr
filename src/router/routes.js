@@ -5,6 +5,8 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'delta-e', component: () => import('pages/DeltaEPage.vue') },
+      { path: 'labyrinthus', component: () => import('pages/LabyrinthusPage.vue') },
+      { path: 'my-last-work', redirect: '/labyrinthus' },
     ],
   },
 
