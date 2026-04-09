@@ -1,3 +1,9 @@
+import atlasUrl from 'src/assets/labyrinthus/kenney-tiny-dungeon-tilemap.png'
+
+const TILE_SIZE = 16
+const TILE_SPACING = 1
+const TILE_COLUMNS = 12
+
 function createSpriteCanvas(pattern, palette) {
   const height = pattern.length
   const width = pattern[0]?.length || 0
@@ -10,7 +16,6 @@ function createSpriteCanvas(pattern, palette) {
     return canvas
   }
 
-  ctx.clearRect(0, 0, width, height)
   for (let y = 0; y < pattern.length; y += 1) {
     const row = pattern[y]
     for (let x = 0; x < row.length; x += 1) {
@@ -18,10 +23,12 @@ function createSpriteCanvas(pattern, palette) {
       if (token === '.') {
         continue
       }
+
       const color = palette[token]
       if (!color) {
         continue
       }
+
       ctx.fillStyle = color
       ctx.fillRect(x, y, 1, 1)
     }
@@ -30,364 +37,172 @@ function createSpriteCanvas(pattern, palette) {
   return canvas
 }
 
-function buildSpriteSet(definition) {
-  const frames = definition.frames.map((pattern) => createSpriteCanvas(pattern, definition.palette))
-  const width = definition.frames[0][0].length
-  const height = definition.frames[0].length
-  return { frames, width, height }
-}
+export const LABYRINTHUS_TILES = Object.freeze({
+  floor: [48, 49, 50, 51, 52, 53],
+  floorStart: [30, 42, 48, 49],
+  floorElite: [36, 37, 38, 39, 40],
+  floorTreasure: [30, 42, 48, 50, 51],
+  wall: [57, 58, 59],
+  wallAccent: [28, 40],
+  torch: [29],
+  grave: 65,
+  crate: 66,
+  shelf: 63,
+  anvil: 74,
+  bookshelf: 75,
+  fence: 76,
+  ironFence: 78,
+  cart: 79,
+  barrel: 82,
+  chestClosed: 90,
+  chestTreasure: 92,
+  relic: 56,
+  coinBag: 82,
+  potion: 115,
+  potionAlt: 116,
+  playerSword: 97,
+  playerBow: 109,
+  playerWand: 84,
+  slime: 108,
+  goblin: 109,
+  skeleton: 98,
+  tank: 122,
+  projectile: 126,
+  sword: 104,
+  wand: 130,
+  axe: 118,
+})
 
-function validateDefinitions(definitions) {
-  for (const [name, definition] of Object.entries(definitions)) {
-    for (const frame of definition.frames) {
-      const expectedWidth = frame[0]?.length || 0
-      for (const row of frame) {
-        if (row.length !== expectedWidth) {
-          throw new Error(`Invalid sprite width in "${name}"`)
-        }
-      }
-    }
+function tileRect(index) {
+  const column = index % TILE_COLUMNS
+  const row = Math.floor(index / TILE_COLUMNS)
+
+  return {
+    x: column * (TILE_SIZE + TILE_SPACING),
+    y: row * (TILE_SIZE + TILE_SPACING),
+    width: TILE_SIZE,
+    height: TILE_SIZE,
   }
 }
 
-const SPRITE_DEFINITIONS = {
-  player: {
-    palette: {
-      x: '#10203a',
-      a: '#eaf3ff',
-      b: '#bfd8ff',
-      c: '#8dc0ff',
-      d: '#3e7fe6',
-      e: '#f4c57f',
-      f: '#2e5eb8',
-    },
-    frames: [
-      [
-        '....xxxx....',
-        '...xabba....',
-        '..xabccab...',
-        '..xabddab...',
-        '..xabccab...',
-        '..xafffax...',
-        '.xacfecfa...',
-        '.xacffffa...',
-        '.xaddddda...',
-        '..xad..da...',
-        '..xda..ad...',
-        '...x....x...',
-      ],
-      [
-        '....xxxx....',
-        '...xabba....',
-        '..xabccab...',
-        '..xabddab...',
-        '..xabccab...',
-        '..xafffax...',
-        '.xacfecfa...',
-        '.xacffffa...',
-        '.xaddddda...',
-        '..xaddaax...',
-        '..xa..aax...',
-        '...x....x...',
-      ],
-    ],
-  },
-  slime: {
-    palette: {
-      x: '#143824',
-      g: '#6fd39f',
-      w: '#d8fff0',
-    },
-    frames: [
-      [
-        '............',
-        '............',
-        '...xxxxxx...',
-        '..xggggggx..',
-        '.xggggggggx.',
-        '.xggwwwwggx.',
-        '.xggggggggx.',
-        '.xggggggggx.',
-        '..xggggggx..',
-        '...xx..xx...',
-        '............',
-        '............',
-      ],
-      [
-        '............',
-        '............',
-        '............',
-        '...xxxxxx...',
-        '..xggggggx..',
-        '.xggwwwwggx.',
-        '.xggggggggx.',
-        '..xggggggx..',
-        '...xggggx...',
-        '..xx....xx..',
-        '............',
-        '............',
-      ],
-    ],
-  },
-  goblin: {
-    palette: {
-      x: '#152317',
-      h: '#87c45a',
-      g: '#6ca03f',
-      w: '#f6f5d9',
-      y: '#7c5031',
-    },
-    frames: [
-      [
-        '....xxxx....',
-        '...xhhhhx...',
-        '..xhgggghx..',
-        '..xhgwwghx..',
-        '..xggggggx..',
-        '.xggxhhxggx.',
-        '.xgxxxxxxgx.',
-        '.xgyyyyyygx.',
-        '..xyy..yyx..',
-        '..xy....yx..',
-        '...x....x...',
-        '............',
-      ],
-      [
-        '....xxxx....',
-        '...xhhhhx...',
-        '..xhgggghx..',
-        '..xhgwwghx..',
-        '..xggggggx..',
-        '.xggxhhxggx.',
-        '.xgxxxxxxgx.',
-        '.xgyyyyyygx.',
-        '..xy....yx..',
-        '..x.yy.yx...',
-        '...x....x...',
-        '............',
-      ],
-    ],
-  },
-  skeleton: {
-    palette: {
-      x: '#1b253d',
-      w: '#f3f8ff',
-      b: '#8ba7d5',
-    },
-    frames: [
-      [
-        '....xxxx....',
-        '...xwwwwx...',
-        '..xwxxxxwx..',
-        '..xwxbbxwx..',
-        '..xwxxxxwx..',
-        '...xwwwwx...',
-        '..xwwwwwwx..',
-        '.xwwxwwxwwx.',
-        '.xwwwwwwwwx.',
-        '..xww..wwx..',
-        '...x....x...',
-        '............',
-      ],
-      [
-        '....xxxx....',
-        '...xwwwwx...',
-        '..xwxxxxwx..',
-        '..xwxbbxwx..',
-        '..xwxxxxwx..',
-        '...xwwwwx...',
-        '..xwwwwwwx..',
-        '.xwwwwwwwwx.',
-        '..xwwwwwwx..',
-        '..xw....wx..',
-        '...xw..wx...',
-        '....x..x....',
-      ],
-    ],
-  },
-  tank: {
-    palette: {
-      x: '#3f1c1c',
-      r: '#d08d84',
-      h: '#ffd9c8',
-      t: '#945f4b',
-    },
-    frames: [
-      [
-        '...xxxxxxxx.',
-        '..xrrrrrrrx.',
-        '.xrrrxxrrrx.',
-        '.xrrxhhxrrx.',
-        '.xrrxxxxrrx.',
-        '.xrrrxxrrrx.',
-        '.xrrttttrrx.',
-        '.xrrttttrrx.',
-        '..xrrttrrx..',
-        '..xrr..rrx..',
-        '...x....x...',
-        '............',
-      ],
-      [
-        '...xxxxxxxx.',
-        '..xrrrrrrrx.',
-        '.xrrrxxrrrx.',
-        '.xrrxhhxrrx.',
-        '.xrrxxxxrrx.',
-        '.xrrrxxrrrx.',
-        '.xrrttttrrx.',
-        '.xrrttttrrx.',
-        '..xrrttrrx..',
-        '..xr....rx..',
-        '..xrr..rrx..',
-        '...x....x...',
-      ],
-    ],
-  },
-  coin: {
-    palette: {
-      y: '#ab6d1e',
-      o: '#f4be53',
-      Y: '#ffe69a',
-    },
-    frames: [
-      [
-        '............',
-        '....yyyy....',
-        '...yoooooy..',
-        '..yoooooooy.',
-        '..yooYYoooy.',
-        '..yooYYoooy.',
-        '..yoooooooy.',
-        '...yoooooy..',
-        '....yyyy....',
-        '............',
-        '............',
-        '............',
-      ],
-      [
-        '............',
-        '....yyyy....',
-        '...yoYYooy..',
-        '..yoooooooy.',
-        '..yooYYoooy.',
-        '..yoooooooy.',
-        '..yooYYoooy.',
-        '...yoYYooy..',
-        '....yyyy....',
-        '............',
-        '............',
-        '............',
-      ],
-    ],
-  },
-  potion: {
-    palette: {
-      x: '#2a2544',
-      p: '#d1d9ef',
-      m: '#ff6fae',
-      a: '#ffc3df',
-    },
-    frames: [
-      [
-        '............',
-        '.....xx.....',
-        '....xppx....',
-        '....xppx....',
-        '...xmmmmx...',
-        '..xmmppmmx..',
-        '..xmmppmmx..',
-        '..xmmmmmmx..',
-        '...xmmmmx...',
-        '...xaaaax...',
-        '....xxxx....',
-        '............',
-      ],
-      [
-        '............',
-        '.....xx.....',
-        '....xppx....',
-        '....xppx....',
-        '...xmmmmx...',
-        '..xmpmppmx..',
-        '..xmppmmpx..',
-        '..xmmmmmmx..',
-        '...xmmmmx...',
-        '...xaaaax...',
-        '....xxxx....',
-        '............',
-      ],
-    ],
-  },
-  relic: {
-    palette: {
-      z: '#2b315d',
-      r: '#87a6ff',
-      R: '#c6d6ff',
-    },
-    frames: [
-      [
-        '............',
-        '.....zz.....',
-        '....zrrz....',
-        '...zrrrrz...',
-        '..zrRrrRrz..',
-        '..zrrrrrrz..',
-        '..zrrrrrrz..',
-        '...zrrrrz...',
-        '....zrrz....',
-        '.....zz.....',
-        '............',
-        '............',
-      ],
-      [
-        '............',
-        '.....zz.....',
-        '....zRRz....',
-        '...zrrrrz...',
-        '..zrRrrRrz..',
-        '..zrrrrrrz..',
-        '..zrrRRrrz..',
-        '...zrrrrz...',
-        '....zrrz....',
-        '.....zz.....',
-        '............',
-        '............',
-      ],
-    ],
-  },
-  projectile: {
-    palette: {
-      q: '#dce9ff',
-      Q: '#ffffff',
-    },
-    frames: [
-      [
-        '............',
-        '.....qq.....',
-        '....qqqq....',
-        '...qqQQqq...',
-        '...qqQQqq...',
-        '....qqqq....',
-        '.....qq.....',
-        '............',
-        '............',
-        '............',
-        '............',
-        '............',
-      ],
-    ],
-  },
+function createAtlasSprite(frameIndexes) {
+  return {
+    kind: 'atlas',
+    frames: frameIndexes.map((index) => tileRect(index)),
+    width: TILE_SIZE,
+    height: TILE_SIZE,
+  }
+}
+
+function createCanvasSprite(patterns, palette) {
+  const frames = patterns.map((pattern) => createSpriteCanvas(pattern, palette))
+  return {
+    kind: 'canvas',
+    frames,
+    width: patterns[0][0].length,
+    height: patterns[0].length,
+  }
+}
+
+function createAtlasImage() {
+  if (typeof Image === 'undefined') {
+    return null
+  }
+
+  const image = new Image()
+  image.decoding = 'async'
+  image.src = atlasUrl
+  return image
+}
+
+export function getLabyrinthusTileRect(index) {
+  return tileRect(index)
 }
 
 export function createLabyrinthusSprites() {
-  if (typeof document === 'undefined') {
-    return {}
-  }
+  const atlasImage = createAtlasImage()
 
-  validateDefinitions(SPRITE_DEFINITIONS)
-  const library = {}
-  for (const [name, definition] of Object.entries(SPRITE_DEFINITIONS)) {
-    library[name] = buildSpriteSet(definition)
+  return {
+    $atlas: {
+      image: atlasImage,
+      tileSize: TILE_SIZE,
+      spacing: TILE_SPACING,
+      columns: TILE_COLUMNS,
+      loaded: Boolean(atlasImage?.complete && atlasImage?.naturalWidth),
+    },
+    $tiles: LABYRINTHUS_TILES,
+    playerSword: createAtlasSprite([LABYRINTHUS_TILES.playerSword]),
+    playerBow: createAtlasSprite([LABYRINTHUS_TILES.playerBow]),
+    playerWand: createAtlasSprite([LABYRINTHUS_TILES.playerWand]),
+    slime: createAtlasSprite([LABYRINTHUS_TILES.slime]),
+    goblin: createAtlasSprite([LABYRINTHUS_TILES.goblin]),
+    skeleton: createAtlasSprite([LABYRINTHUS_TILES.skeleton]),
+    tank: createAtlasSprite([LABYRINTHUS_TILES.tank]),
+    coin: createAtlasSprite([LABYRINTHUS_TILES.coinBag]),
+    potion: createAtlasSprite([LABYRINTHUS_TILES.potion, LABYRINTHUS_TILES.potionAlt]),
+    relic: createAtlasSprite([LABYRINTHUS_TILES.relic]),
+    projectile: createAtlasSprite([LABYRINTHUS_TILES.projectile]),
+    sword: createAtlasSprite([LABYRINTHUS_TILES.sword]),
+    wand: createAtlasSprite([LABYRINTHUS_TILES.wand]),
+    axe: createAtlasSprite([LABYRINTHUS_TILES.axe]),
+    bow: createCanvasSprite(
+      [
+        [
+          '...xx...',
+          '..xyyx..',
+          '.xy..yx.',
+          '.xy..yx.',
+          '.xy..yx.',
+          '.xy..yx.',
+          '..xyyx..',
+          '...xx...',
+        ],
+      ],
+      {
+        x: '#5b372b',
+        y: '#d9c7a6',
+      },
+    ),
+    arrow: createCanvasSprite(
+      [
+        [
+          '....m.......',
+          '...mmm......',
+          'xxxyyyzzzz..',
+          '...mmm......',
+          '....m.......',
+        ],
+      ],
+      {
+        x: '#f4e9d2',
+        y: '#8d5d3b',
+        z: '#cfd6e6',
+        m: '#e0c27a',
+      },
+    ),
+    magicBolt: createCanvasSprite(
+      [
+        [
+          '....aa....',
+          '..aabbcc..',
+          '.aabddc...',
+          '..abddc...',
+          '...bcc....',
+        ],
+        [
+          '....aa....',
+          '...abbc...',
+          '..abddcc..',
+          '...abdc...',
+          '....cc....',
+        ],
+      ],
+      {
+        a: '#f4fdff',
+        b: '#92ebff',
+        c: '#55c0ff',
+        d: '#2e7cff',
+      },
+    ),
   }
-  return library
 }

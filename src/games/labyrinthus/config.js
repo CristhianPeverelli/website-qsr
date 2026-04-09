@@ -10,12 +10,95 @@ export const PLAYER_BASE = {
   radius: 16,
   maxHp: 110,
   speed: 250,
-  damage: 24,
-  critChance: 0.11,
-  attackRange: 86,
-  attackArcDot: 0.2,
-  attackCooldown: 0.36,
 }
+
+export const PLAYER_DEFAULT_LOADOUT_ID = 'sword'
+
+export const PLAYER_LOADOUTS = [
+  {
+    id: 'sword',
+    title: 'Knight Sword',
+    shortLabel: 'Sword',
+    archetype: 'Warrior - Arms',
+    description: 'Wide melee slash with strong close-range damage.',
+    attackKind: 'melee',
+    spriteKey: 'playerSword',
+    weaponSpriteKey: 'sword',
+    damage: 24,
+    critChance: 0.11,
+    attackRange: 88,
+    attackArcDot: 0.18,
+    attackCooldown: 0.34,
+    attackFxDuration: 0.18,
+    attackColor: '#93e5ff',
+  },
+  {
+    id: 'bow',
+    title: 'Ranger Bow',
+    shortLabel: 'Bow',
+    archetype: 'Hunter - Marksmanship',
+    description: 'Precise ranged arrows with higher crit chance.',
+    attackKind: 'projectile',
+    spriteKey: 'playerBow',
+    weaponSpriteKey: 'bow',
+    damage: 15,
+    critChance: 0.25,
+    attackRange: 0,
+    attackArcDot: -1,
+    attackCooldown: 0.46,
+    attackFxDuration: 0.12,
+    attackColor: '#ffe9a3',
+    projectile: {
+      spriteKey: 'arrow',
+      speed: 520,
+      radius: 5,
+      life: 1.2,
+      color: '#ffe2a0',
+      trailStyle: 'arrow',
+      particleColor: '#ffe8bc',
+      pierce: 0,
+      splashRadius: 0,
+      knockback: 0,
+    },
+  },
+  {
+    id: 'wand',
+    title: 'Arcane Wand',
+    shortLabel: 'Wand',
+    archetype: 'Mage - Arcane',
+    description: 'Rapid spell bolts that burst on impact and punish groups.',
+    attackKind: 'projectile',
+    spriteKey: 'playerWand',
+    weaponSpriteKey: 'wand',
+    damage: 15,
+    critChance: 0.08,
+    attackRange: 0,
+    attackArcDot: -1,
+    attackCooldown: 0.28,
+    attackFxDuration: 0.16,
+    attackColor: '#7fdcff',
+    projectile: {
+      spriteKey: 'magicBolt',
+      speed: 360,
+      radius: 8,
+      life: 1.4,
+      color: '#7fdcff',
+      trailStyle: 'arcane',
+      particleColor: '#9ee7ff',
+      pierce: 0,
+      splashRadius: 42,
+      splashDamageMultiplier: 0.6,
+      knockback: 0,
+    },
+  },
+]
+
+export const PLAYER_LOADOUTS_BY_ID = Object.freeze(
+  PLAYER_LOADOUTS.reduce((accumulator, loadout) => {
+    accumulator[loadout.id] = loadout
+    return accumulator
+  }, {}),
+)
 
 export const ROOM_GENERATION = {
   extraDoorChance: 0.4,
@@ -56,7 +139,7 @@ export const ENEMY_ARCHETYPES = {
     color: '#f0f3ff',
   },
   tank: {
-    label: 'Bone Tank',
+    label: 'Skeleton Tank',
     radius: 18,
     hp: 86,
     speed: 54,
@@ -68,7 +151,13 @@ export const ENEMY_ARCHETYPES = {
 }
 
 export const ENEMY_SPAWN_POOLS = [
-  { minRooms: 0, entries: [{ type: 'slime', weight: 6 }, { type: 'goblin', weight: 4 }] },
+  {
+    minRooms: 0,
+    entries: [
+      { type: 'slime', weight: 6 },
+      { type: 'goblin', weight: 4 },
+    ],
+  },
   {
     minRooms: 3,
     entries: [

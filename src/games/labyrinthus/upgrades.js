@@ -4,7 +4,7 @@ const UPGRADE_LIBRARY = [
   {
     id: 'keen-edge',
     title: 'Keen Edge',
-    description: '+10% melee damage',
+    description: '+10% weapon damage',
     apply: ({ player }) => {
       player.damage *= 1.1
     },

@@ -1,4 +1,9 @@
-import { ENEMY_ARCHETYPES, PLAYER_BASE } from './config'
+import {
+  ENEMY_ARCHETYPES,
+  PLAYER_BASE,
+  PLAYER_DEFAULT_LOADOUT_ID,
+  PLAYER_LOADOUTS_BY_ID,
+} from './config'
 import { randRange } from './utils'
 
 let enemyId = 0
@@ -11,7 +16,12 @@ export function resetEntityIds() {
   projectileId = 0
 }
 
-export function createPlayer(x, y) {
+export function resolvePlayerLoadout(loadoutId = PLAYER_DEFAULT_LOADOUT_ID) {
+  return PLAYER_LOADOUTS_BY_ID[loadoutId] || PLAYER_LOADOUTS_BY_ID[PLAYER_DEFAULT_LOADOUT_ID]
+}
+
+export function createPlayer(x, y, loadoutId = PLAYER_DEFAULT_LOADOUT_ID) {
+  const loadout = resolvePlayerLoadout(loadoutId)
   return {
     x,
     y,
@@ -19,16 +29,22 @@ export function createPlayer(x, y) {
     maxHp: PLAYER_BASE.maxHp,
     hp: PLAYER_BASE.maxHp,
     speed: PLAYER_BASE.speed,
-    damage: PLAYER_BASE.damage,
-    critChance: PLAYER_BASE.critChance,
-    attackRange: PLAYER_BASE.attackRange,
-    attackArcDot: PLAYER_BASE.attackArcDot,
-    attackCooldown: PLAYER_BASE.attackCooldown,
+    damage: loadout.damage,
+    critChance: loadout.critChance,
+    attackRange: loadout.attackRange,
+    attackArcDot: loadout.attackArcDot,
+    attackCooldown: loadout.attackCooldown,
     attackCooldownLeft: 0,
     invulnerability: 0,
     facingX: 0,
     facingY: -1,
     attackFx: 0,
+    attackFxType: loadout.id,
+    lastAttackAngle: -Math.PI / 2,
+    weapon: {
+      ...loadout,
+      projectile: loadout.projectile ? { ...loadout.projectile } : null,
+    },
   }
 }
 
@@ -82,6 +98,12 @@ export function createProjectile({
   life = 2.1,
   owner = 'enemy',
   color = '#f8f9ff',
+  spriteKey = 'projectile',
+  trailStyle = 'default',
+  particleColor = color,
+  pierce = 0,
+  splashRadius = 0,
+  splashDamageMultiplier = 0,
 }) {
   return {
     id: `projectile-${projectileId += 1}`,
@@ -97,6 +119,12 @@ export function createProjectile({
     maxLife: life,
     owner,
     color,
+    spriteKey,
+    trailStyle,
+    particleColor,
+    pierce,
+    splashRadius,
+    splashDamageMultiplier,
     trail: [],
   }
 }

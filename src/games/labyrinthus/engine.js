@@ -2,11 +2,13 @@ import {
   ENEMY_SPAWN_POOLS,
   LABYRINTHUS_TITLE,
   LAYOUT_COLORS,
+  PLAYER_DEFAULT_LOADOUT_ID,
   WORLD,
 } from './config'
 import { circlesOverlap, detectDoorTransition, isProjectileBlocked, moveCircle } from './collision'
 import { DungeonGraph, roomTypeLabel } from './dungeon'
 import { createEnemy, createLoot, createPlayer, createProjectile, resetEntityIds } from './entities'
+import { renderLabyrinthusScene } from './rendering'
 import { createLabyrinthusSprites } from './sprites'
 import { applyUpgradeById, rollRelic, rollUpgradeChoices } from './upgrades'
 import {
@@ -80,6 +82,19 @@ export class LabyrinthusEngine {
     }
     this.onStateChange = onStateChange
     this.sprites = createLabyrinthusSprites()
+    if (this.sprites.$atlas?.image) {
+      if (this.sprites.$atlas.image.complete && this.sprites.$atlas.image.naturalWidth) {
+        this.sprites.$atlas.loaded = true
+      } else {
+        this.sprites.$atlas.image.addEventListener(
+          'load',
+          () => {
+            this.sprites.$atlas.loaded = true
+          },
+          { once: true },
+        )
+      }
+    }
 
     this.scene = 'menu'
     this.gameOverSummary = null
@@ -125,6 +140,7 @@ export class LabyrinthusEngine {
     this.particles = []
     this.cameraShake = 0
     this.damageFlash = 0
+    this.selectedLoadoutId = PLAYER_DEFAULT_LOADOUT_ID
 
     this.handleKeydown = this.handleKeydown.bind(this)
     this.handleKeyup = this.handleKeyup.bind(this)
@@ -171,15 +187,16 @@ export class LabyrinthusEngine {
     event.preventDefault()
   }
 
-  startRun() {
+  startRun(loadoutId = this.selectedLoadoutId) {
     const seed = Date.now()
     this.runSeed = seed
     this.runRng = createRng(seed)
     resetEntityIds()
+    this.selectedLoadoutId = loadoutId || PLAYER_DEFAULT_LOADOUT_ID
 
     this.dungeon = new DungeonGraph(seed)
     this.currentRoom = this.dungeon.getRoom(0, 0)
-    this.player = createPlayer(WORLD.width / 2, WORLD.height / 2)
+    this.player = createPlayer(WORLD.width / 2, WORLD.height / 2, this.selectedLoadoutId)
     this.enemies = []
     this.loot = []
     this.projectiles = []
@@ -211,7 +228,7 @@ export class LabyrinthusEngine {
   }
 
   restartRun() {
-    this.startRun()
+    this.startRun(this.selectedLoadoutId)
   }
 
   selectUpgrade(upgradeId) {
@@ -318,7 +335,7 @@ export class LabyrinthusEngine {
     this.time += deltaTime
 
     this.update(deltaTime)
-    this.render()
+    renderLabyrinthusScene(this)
 
     this.loopId = requestAnimationFrame(this.frame)
   }
@@ -464,27 +481,6 @@ export class LabyrinthusEngine {
     }
   }
 
-  spawnPlayerSlashFx() {
-    const angle = Math.atan2(this.player.facingY, this.player.facingX)
-    const centerX = this.player.x + this.player.facingX * (this.player.radius + 10)
-    const centerY = this.player.y + this.player.facingY * (this.player.radius + 10)
-    this.spawnParticles({
-      x: centerX,
-      y: centerY,
-      count: 12,
-      color: '#8dd8ff',
-      speedMin: 80,
-      speedMax: 230,
-      sizeMin: 1.6,
-      sizeMax: 3.8,
-      lifeMin: 0.14,
-      lifeMax: 0.33,
-      angle,
-      spread: Math.PI * 0.8,
-      drag: 0.9,
-    })
-  }
-
   updateParticles(deltaTime) {
     for (let index = this.particles.length - 1; index >= 0; index -= 1) {
       const particle = this.particles[index]
@@ -501,16 +497,160 @@ export class LabyrinthusEngine {
     }
   }
 
-  performPlayerAttack() {
+  beginPlayerAttack() {
     if (this.player.attackCooldownLeft > 0) {
       return false
     }
 
-    this.player.attackCooldownLeft = this.player.attackCooldown
-    this.player.attackFx = 0.17
-    this.spawnPlayerSlashFx()
+    const attackDirection = normalize(this.player.facingX, this.player.facingY)
+    if (attackDirection.x || attackDirection.y) {
+      this.player.facingX = attackDirection.x
+      this.player.facingY = attackDirection.y
+    } else {
+      this.player.facingX = 0
+      this.player.facingY = -1
+    }
 
+    this.player.attackCooldownLeft = this.player.attackCooldown
+    this.player.attackFx = this.player.weapon.attackFxDuration || 0.16
+    this.player.attackFxType = this.player.weapon.id
+    this.player.lastAttackAngle = Math.atan2(this.player.facingY, this.player.facingX)
+    return true
+  }
+
+  rollPlayerDamage() {
+    const critical = this.runRng() < this.player.critChance
+    return {
+      critical,
+      damage: this.player.damage * (critical ? 1.75 : 1),
+    }
+  }
+
+  spawnPlayerAttackParticles() {
+    const weaponId = this.player.weapon.id
+    const angle = this.player.lastAttackAngle
+    const centerX = this.player.x + this.player.facingX * (this.player.radius + 10)
+    const centerY = this.player.y + this.player.facingY * (this.player.radius + 10)
+
+    if (weaponId === 'bow') {
+      this.spawnParticles({
+        x: centerX,
+        y: centerY,
+        count: 8,
+        color: '#ffe0a8',
+        speedMin: 45,
+        speedMax: 140,
+        sizeMin: 1,
+        sizeMax: 2.6,
+        lifeMin: 0.08,
+        lifeMax: 0.22,
+        angle,
+        spread: Math.PI * 0.28,
+        drag: 0.9,
+      })
+      return
+    }
+
+    if (weaponId === 'wand') {
+      this.spawnParticles({
+        x: centerX,
+        y: centerY,
+        count: 11,
+        color: this.player.weapon.attackColor,
+        speedMin: 55,
+        speedMax: 175,
+        sizeMin: 1.2,
+        sizeMax: 3.4,
+        lifeMin: 0.12,
+        lifeMax: 0.28,
+        angle,
+        spread: Math.PI * 0.45,
+        gravity: -18,
+        drag: 0.92,
+      })
+      return
+    }
+
+    this.spawnParticles({
+      x: centerX,
+      y: centerY,
+      count: 12,
+      color: this.player.weapon.attackColor,
+      speedMin: 80,
+      speedMax: 230,
+      sizeMin: 1.6,
+      sizeMax: 3.8,
+      lifeMin: 0.14,
+      lifeMax: 0.33,
+      angle,
+      spread: Math.PI * 0.8,
+      drag: 0.9,
+    })
+  }
+
+  damageEnemy(enemyIndex, damage, options = {}) {
+    const enemy = this.enemies[enemyIndex]
+    if (!enemy) {
+      return false
+    }
+
+    const {
+      critical = false,
+      color = enemy.color,
+      count = 8,
+      speedMin = 70,
+      speedMax = 170,
+      sizeMin = 1.6,
+      sizeMax = 3.6,
+      lifeMin = 0.14,
+      lifeMax = 0.35,
+      score = 0,
+    } = options
+
+    enemy.hp -= damage
+    enemy.hitFx = 0.12
+    this.spawnParticles({
+      x: enemy.x,
+      y: enemy.y,
+      count: critical ? Math.max(count, 14) : count,
+      color: critical ? '#fff8af' : color,
+      speedMin,
+      speedMax: critical ? Math.max(speedMax, 250) : speedMax,
+      sizeMin,
+      sizeMax: critical ? Math.max(sizeMax, 4.8) : sizeMax,
+      lifeMin,
+      lifeMax,
+    })
+
+    if (score > 0) {
+      this.stats.score += score
+    }
+
+    if (enemy.hp <= 0) {
+      this.defeatEnemy(enemyIndex)
+    }
+
+    return true
+  }
+
+  performPlayerAttack() {
+    if (!this.beginPlayerAttack()) {
+      return false
+    }
+
+    this.spawnPlayerAttackParticles()
+
+    if (this.player.weapon.attackKind === 'projectile') {
+      return this.performProjectilePlayerAttack()
+    }
+
+    return this.performMeleePlayerAttack()
+  }
+
+  performMeleePlayerAttack() {
     const hitIds = new Set()
+    const attackColor = this.player.weapon.attackColor
+
     for (let index = this.enemies.length - 1; index >= 0; index -= 1) {
       const enemy = this.enemies[index]
       const dx = enemy.x - this.player.x
@@ -526,31 +666,16 @@ export class LabyrinthusEngine {
         continue
       }
 
-      const critical = this.runRng() < this.player.critChance
-      const rawDamage = this.player.damage * (critical ? 1.75 : 1)
-      enemy.hp -= rawDamage
-      enemy.hitFx = 0.12
-      hitIds.add(enemy.id)
-      this.spawnParticles({
-        x: enemy.x,
-        y: enemy.y,
-        count: critical ? 14 : 8,
-        color: critical ? '#fff8af' : enemy.color,
-        speedMin: 70,
-        speedMax: critical ? 250 : 170,
-        sizeMin: 1.6,
-        sizeMax: critical ? 4.8 : 3.6,
-        lifeMin: 0.14,
-        lifeMax: 0.35,
+      const { damage, critical } = this.rollPlayerDamage()
+      this.damageEnemy(index, damage, {
+        critical,
+        color: attackColor,
+        score: 6,
       })
-
-      if (enemy.hp <= 0) {
-        this.defeatEnemy(index)
-      }
+      hitIds.add(enemy.id)
     }
 
     if (hitIds.size > 0) {
-      this.stats.score += hitIds.size * 6
       this.addCameraShake(0.18)
     } else {
       this.addCameraShake(0.05)
@@ -558,6 +683,63 @@ export class LabyrinthusEngine {
 
     this.syncRoomEntities()
     return hitIds.size > 0
+  }
+
+  performProjectilePlayerAttack() {
+    const projectileConfig = this.player.weapon.projectile
+    if (!projectileConfig) {
+      return false
+    }
+
+    const projectileDirection = normalize(this.player.facingX, this.player.facingY)
+    const muzzleDistance = this.player.radius + (this.player.weapon.id === 'bow' ? 18 : 14)
+    const muzzleX = this.player.x + projectileDirection.x * muzzleDistance
+    const muzzleY = this.player.y + projectileDirection.y * muzzleDistance
+    const { damage, critical } = this.rollPlayerDamage()
+    const projectileColor = critical ? '#fff3b6' : projectileConfig.color
+    const particleColor = critical ? '#fff8d5' : projectileConfig.particleColor
+
+    const projectile = createProjectile({
+      x: muzzleX,
+      y: muzzleY,
+      velocityX: projectileDirection.x * projectileConfig.speed,
+      velocityY: projectileDirection.y * projectileConfig.speed,
+      radius: projectileConfig.radius,
+      damage,
+      life: projectileConfig.life,
+      owner: 'player',
+      color: projectileColor,
+      spriteKey: projectileConfig.spriteKey,
+      trailStyle: projectileConfig.trailStyle,
+      particleColor,
+      pierce: projectileConfig.pierce,
+      splashRadius: projectileConfig.splashRadius,
+      splashDamageMultiplier: projectileConfig.splashDamageMultiplier,
+    })
+
+    projectile.critical = critical
+    projectile.sourceWeaponId = this.player.weapon.id
+    this.projectiles.push(projectile)
+
+    this.spawnParticles({
+      x: muzzleX,
+      y: muzzleY,
+      count: this.player.weapon.id === 'wand' ? 10 : 6,
+      color: particleColor,
+      speedMin: this.player.weapon.id === 'wand' ? 60 : 42,
+      speedMax: this.player.weapon.id === 'wand' ? 165 : 125,
+      sizeMin: 1.1,
+      sizeMax: this.player.weapon.id === 'wand' ? 3.2 : 2.4,
+      lifeMin: 0.08,
+      lifeMax: 0.22,
+      angle: this.player.lastAttackAngle,
+      spread: this.player.weapon.id === 'wand' ? Math.PI * 0.55 : Math.PI * 0.24,
+      gravity: this.player.weapon.id === 'wand' ? -14 : 0,
+      drag: 0.91,
+    })
+
+    this.addCameraShake(this.player.weapon.id === 'wand' ? 0.09 : 0.06)
+    return true
   }
 
   defeatEnemy(enemyIndex) {
@@ -718,9 +900,128 @@ export class LabyrinthusEngine {
     }
   }
 
+  spawnProjectileImpact(projectile, options = {}) {
+    const {
+      x = projectile.x,
+      y = projectile.y,
+      color = projectile.particleColor || projectile.color,
+      count = projectile.trailStyle === 'arcane' ? 10 : 6,
+      speedMin = projectile.trailStyle === 'arcane' ? 55 : 35,
+      speedMax = projectile.trailStyle === 'arcane' ? 180 : 100,
+      sizeMin = 1,
+      sizeMax = projectile.trailStyle === 'arcane' ? 3.6 : 2.4,
+      lifeMin = 0.09,
+      lifeMax = projectile.trailStyle === 'arcane' ? 0.26 : 0.2,
+      angle = 0,
+      spread = Math.PI * 2,
+      gravity = 0,
+    } = options
+
+    this.spawnParticles({
+      x,
+      y,
+      count,
+      color,
+      speedMin,
+      speedMax,
+      sizeMin,
+      sizeMax,
+      lifeMin,
+      lifeMax,
+      angle,
+      spread,
+      gravity,
+      drag: 0.9,
+    })
+  }
+
+  applyProjectileSplash(projectile, primaryEnemyId = null) {
+    if (!projectile.splashRadius || projectile.splashDamageMultiplier <= 0) {
+      return 0
+    }
+
+    const splashDamage = projectile.damage * projectile.splashDamageMultiplier
+    let splashHits = 0
+
+    for (let enemyIndex = this.enemies.length - 1; enemyIndex >= 0; enemyIndex -= 1) {
+      const enemy = this.enemies[enemyIndex]
+      if (!enemy || enemy.id === primaryEnemyId) {
+        continue
+      }
+
+      const maxDistance = projectile.splashRadius + enemy.radius
+      if (distance(projectile.x, projectile.y, enemy.x, enemy.y) > maxDistance) {
+        continue
+      }
+
+      this.damageEnemy(enemyIndex, splashDamage, {
+        color: projectile.particleColor || projectile.color,
+        count: 6,
+        speedMin: 55,
+        speedMax: 165,
+        sizeMin: 1.2,
+        sizeMax: 3.8,
+        lifeMin: 0.1,
+        lifeMax: 0.28,
+        score: 3,
+      })
+      splashHits += 1
+    }
+
+    if (splashHits > 0) {
+      this.addCameraShake(0.18)
+    }
+
+    return splashHits
+  }
+
+  handlePlayerProjectileCollision(projectile, projectileIndex) {
+    for (let enemyIndex = this.enemies.length - 1; enemyIndex >= 0; enemyIndex -= 1) {
+      const enemy = this.enemies[enemyIndex]
+      if (!circlesOverlap(projectile, enemy, -2)) {
+        continue
+      }
+
+      const primaryEnemyId = enemy.id
+      const isArcane = projectile.trailStyle === 'arcane'
+      this.damageEnemy(enemyIndex, projectile.damage, {
+        critical: Boolean(projectile.critical),
+        color: projectile.particleColor || projectile.color,
+        count: isArcane ? 12 : 8,
+        speedMin: isArcane ? 60 : 70,
+        speedMax: isArcane ? 220 : 170,
+        sizeMin: 1.2,
+        sizeMax: isArcane ? 4.2 : 3.4,
+        lifeMin: 0.12,
+        lifeMax: 0.32,
+        score: 6,
+      })
+
+      this.spawnProjectileImpact(projectile, {
+        count: isArcane ? 14 : 8,
+      })
+      this.applyProjectileSplash(projectile, primaryEnemyId)
+      this.addCameraShake(isArcane ? 0.14 : 0.08)
+
+      if (projectile.pierce > 0) {
+        projectile.pierce -= 1
+        projectile.damage *= 0.88
+        return false
+      }
+
+      this.projectiles.splice(projectileIndex, 1)
+      return true
+    }
+
+    return false
+  }
+
   updateProjectiles(deltaTime) {
     for (let index = this.projectiles.length - 1; index >= 0; index -= 1) {
       const projectile = this.projectiles[index]
+      const trailLife =
+        projectile.trailStyle === 'arcane' ? 0.24 : projectile.trailStyle === 'arrow' ? 0.14 : 0.2
+
       projectile.prevX = projectile.x
       projectile.prevY = projectile.y
       projectile.x += projectile.velocityX * deltaTime
@@ -729,11 +1030,13 @@ export class LabyrinthusEngine {
       projectile.trail.unshift({
         x: projectile.x,
         y: projectile.y,
-        life: 0.2,
+        life: trailLife,
       })
 
-      if (projectile.trail.length > 6) {
-        projectile.trail.length = 6
+      const maxTrailPoints =
+        projectile.trailStyle === 'arcane' ? 8 : projectile.trailStyle === 'arrow' ? 5 : 6
+      if (projectile.trail.length > maxTrailPoints) {
+        projectile.trail.length = maxTrailPoints
       }
 
       for (const point of projectile.trail) {
@@ -742,29 +1045,21 @@ export class LabyrinthusEngine {
       projectile.trail = projectile.trail.filter((point) => point.life > 0)
 
       if (projectile.life <= 0 || isProjectileBlocked(projectile, this.currentRoom)) {
-        this.spawnParticles({
-          x: projectile.x,
-          y: projectile.y,
-          count: 4,
-          color: toRgba(projectile.color, 1),
-          speedMin: 30,
-          speedMax: 90,
-          sizeMin: 1,
-          sizeMax: 2.4,
-          lifeMin: 0.09,
-          lifeMax: 0.2,
+        this.spawnProjectileImpact(projectile, {
+          count: projectile.owner === 'player' ? 6 : 4,
         })
+        if (projectile.owner === 'player') {
+          this.applyProjectileSplash(projectile)
+        }
         this.projectiles.splice(index, 1)
         continue
       }
 
       if (projectile.owner === 'enemy' && circlesOverlap(projectile, this.player, -2)) {
         this.damagePlayer(projectile.damage)
-        this.spawnParticles({
-          x: projectile.x,
-          y: projectile.y,
-          count: 14,
+        this.spawnProjectileImpact(projectile, {
           color: '#ffd1d1',
+          count: 14,
           speedMin: 70,
           speedMax: 180,
           sizeMin: 1.2,
@@ -773,6 +1068,11 @@ export class LabyrinthusEngine {
           lifeMax: 0.32,
         })
         this.projectiles.splice(index, 1)
+        continue
+      }
+
+      if (projectile.owner === 'player' && this.handlePlayerProjectileCollision(projectile, index)) {
+        continue
       }
     }
   }
@@ -1146,6 +1446,11 @@ export class LabyrinthusEngine {
             damage: this.player.damage,
             critChance: this.player.critChance,
             attackCooldown: this.player.attackCooldown,
+            weaponId: this.player.weapon.id,
+            weaponLabel: this.player.weapon.shortLabel,
+            weaponTitle: this.player.weapon.title,
+            weaponArchetype: this.player.weapon.archetype,
+            attackKind: this.player.weapon.attackKind,
           }
         : null,
       stats: {
