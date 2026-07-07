@@ -1,91 +1,135 @@
-@media (max-width: 1200px) {
-  .projects-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 980px) {
-  .hero-grid,
-  .about-grid,
-  .skills-grid,
-  .experience-grid,
-  .contact-grid {
+@media (max-width: 1020px) {
+  .split-section,
+  .hero-shell,
+  .contact-shell {
     grid-template-columns: 1fr;
   }
 
-  .project-summary {
-    min-height: 0;
+  .hero-signals {
+    max-width: 520px;
+  }
+
+  .hero-icosahedron {
+    inset: 10% -46% 10% 14%;
+    opacity: 0.42;
+  }
+
+  .hero-title {
+    font-size: 6.8rem;
+  }
+
+  .section-title,
+  .contact-shell .section-title {
+    font-size: 3.2rem;
+  }
+
+  .project-title {
+    font-size: 2.8rem;
+  }
+
+  .project-row {
+    grid-template-columns: 54px minmax(0, 1fr);
+  }
+
+  .project-actions {
+    grid-column: 2;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .portfolio-section {
+    padding: 64px 18px;
   }
 
   .hero-section {
     min-height: auto;
-    display: block;
-    padding-top: 24px;
-    padding-bottom: 56px;
+    padding-top: 68px;
+    padding-bottom: 80px;
   }
 
-  .games-panel__grid {
+  .hero-icosahedron {
+    inset: 18% -92% 28% 20%;
+    opacity: 0.3;
+  }
+
+  .hero-title {
+    font-size: 4.6rem;
+  }
+
+  .hero-role {
+    max-width: 620px;
+    margin-top: 24px;
+    font-size: 1.22rem;
+  }
+
+  .hero-lead,
+  .project-summary {
+    font-size: 0.96rem;
+  }
+
+  .section-title,
+  .contact-shell .section-title {
+    font-size: 2.55rem;
+  }
+
+  .project-title {
+    font-size: 2.28rem;
+  }
+
+  .hero-footer {
+    bottom: 18px;
+    padding-inline: 18px;
+  }
+
+  .stack-grid {
     grid-template-columns: 1fr;
   }
 
-  .games-panel-card__description {
-    min-height: 0;
-  }
-}
-
-@media (max-width: 700px) {
-  .portfolio-page {
-    padding-top: 0;
-  }
-
-  .hero-intro {
+  .project-row {
     grid-template-columns: 1fr;
     gap: 14px;
   }
 
-  .hero-portrait {
-    width: min(180px, 48vw);
-    padding: 8px;
-    border-radius: 20px;
+  .project-actions {
+    grid-column: auto;
   }
 
-  .hero-portrait__image {
-    border-radius: 14px;
-  }
-
-  .portfolio-page::after {
-    opacity: 0.2;
-    background-size: 52px 52px;
-  }
-
-  .project-search {
-    min-width: 100%;
-  }
-
-  .projects-grid {
+  .journey-item {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  .hero-icosa-note {
-    font-size: 0.84rem;
+  .footer-content {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 460px) {
+  .hero-title {
+    font-size: 3.35rem;
   }
 
-  .games-panel {
-    width: min(100vw - 20px, 920px);
-    border-radius: 18px;
+  .section-title,
+  .contact-shell .section-title {
+    font-size: 2.18rem;
   }
 
-  .orb-a {
-    width: 300px;
-    height: 300px;
-    top: 34px;
-    right: -120px;
+  .project-title {
+    font-size: 2rem;
   }
 
-  .orb-b {
-    width: 260px;
-    height: 260px;
-    top: 720px;
-    left: -110px;
+  .hero-actions,
+  .project-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-actions .q-btn {
+    width: 100%;
+  }
+
+  .contact-link {
+    min-height: 50px;
   }
 }

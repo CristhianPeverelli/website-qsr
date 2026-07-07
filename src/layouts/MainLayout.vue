@@ -18,6 +18,8 @@ import MainHeader from 'components/MainHeader.vue'
 <style scoped>
 .app-shell {
   min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .layout-page-container {
@@ -39,5 +41,19 @@ import MainHeader from 'components/MainHeader.vue'
   opacity: 0;
   transform: translateY(16px);
   filter: blur(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :deep(.shell-flow-enter-active),
+  :deep(.shell-flow-leave-active) {
+    transition: none;
+  }
+
+  :deep(.shell-flow-enter-from),
+  :deep(.shell-flow-leave-to) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 </style>

@@ -1,16 +1,36 @@
-.experience-grid {
+.journey-list {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
-  gap: 16px;
+  border-top: 1px solid var(--border-soft);
 }
 
-.timeline-org {
+.journey-item {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: clamp(18px, 4vw, 42px);
+  padding: 26px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.journey-item > span {
+  color: var(--accent-1);
+  font-weight: 800;
+}
+
+.journey-item h3 {
   margin: 0;
+  color: var(--text-primary);
+  font-size: 1.32rem;
+  letter-spacing: 0;
+}
+
+.journey-place {
+  margin: 7px 0 0;
+  color: var(--text-muted);
   font-weight: 700;
 }
 
-.timeline-text {
-  margin: 8px 0 0;
+.journey-item p:last-child {
+  margin: 10px 0 0;
   color: var(--text-secondary);
-  line-height: 1.65;
+  line-height: 1.68;
 }

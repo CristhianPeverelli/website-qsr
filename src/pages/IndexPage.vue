@@ -1,36 +1,33 @@
 <template>
   <q-page class="portfolio-page">
-    <div class="bg-orb orb-a" />
-    <div class="bg-orb orb-b" />
+    <section
+      id="home"
+      data-section
+      class="portfolio-section hero-section"
+      aria-labelledby="hero-title"
+    >
+      <InteractiveIcosahedron class="hero-icosahedron" />
 
-    <section id="home" data-section class="portfolio-section hero-section">
-      <div class="section-shell hero-grid">
+      <div class="section-shell hero-shell">
         <div class="hero-copy">
-          <p class="section-kicker">Computer Science and Software Development</p>
-          <h1 class="hero-title">
-            It doesn't matter who disappears, everyone is interested in the man who comes out on the
-            other side.
-          </h1>
-          <div class="hero-intro">
-            <div class="surface-card hero-portrait">
-              <img
-                class="hero-portrait__image"
-                :src="profilePhoto"
-                alt="Portrait of Cristhian Peverelli"
-              />
-            </div>
-            <p class="hero-lead">
-              I am Cristhian Peverelli, a developer and IT technician from Italy. I design and ship
-              software with clean architecture, maintainable code, and polished user experience.
-            </p>
-          </div>
+          <p class="section-kicker">Portfolio / Italy / 2026</p>
+          <h1 id="hero-title" class="hero-title">Cristhian Peverelli</h1>
+          <p class="hero-role">
+            Computer Science graduate focused on web development, IT systems and security-minded
+            software.
+          </p>
+          <p class="hero-lead">
+            I build practical digital products with clean interfaces, solid code and a careful eye
+            for how people actually use them.
+          </p>
 
-          <div class="hero-actions">
+          <div class="hero-actions" aria-label="Primary actions">
             <q-btn
               unelevated
               no-caps
               color="primary"
-              label="View projects"
+              icon-right="south_east"
+              label="Selected work"
               class="pill-btn"
               @click="scrollTo('projects')"
             />
@@ -38,246 +35,64 @@
               outline
               no-caps
               color="primary"
-              label="Start a conversation"
+              icon="mail"
+              label="Contact"
               class="pill-btn"
               @click="scrollTo('contact')"
             />
-            <q-btn
-              unelevated
-              no-caps
-              color="secondary"
-              label="Play my games"
-              class="pill-btn"
-              @click="toggleGamePanel"
-            />
-          </div>
-
-          <div class="quick-links">
-            <q-btn
-              flat
-              no-caps
-              icon="code"
-              label="GitHub"
-              href="https://github.com/CristhianPeverelli"
-              target="_blank"
-              rel="noopener"
-            />
-            <q-btn
-              flat
-              no-caps
-              icon="business_center"
-              label="LinkedIn"
-              href="https://www.linkedin.com/in/cristhian-peverelli/"
-              target="_blank"
-              rel="noopener"
-            />
-            <q-btn flat no-caps icon="mail" label="Email" @click="scrollTo('contact')" />
           </div>
         </div>
 
-        <div class="hero-side">
-          <InteractiveIcosahedron />
-          <p class="hero-icosa-note">A living icosahedron inspired by fantasy RPG dices.</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="about" data-section class="portfolio-section">
-      <div class="section-shell">
-        <header class="section-header">
-          <p class="section-kicker">About</p>
-          <h2 class="section-title">Engineering mindset with practical delivery.</h2>
-        </header>
-
-        <div class="about-grid">
-          <q-card flat class="surface-card about-card">
-            <q-card-section>
-              <p>
-                I enjoy building useful software and continuously improving systems already in
-                production. My work style combines technical rigor with a strong focus on product
-                goals.
-              </p>
-              <p>
-                I have hands-on experience with frontend frameworks, backend fundamentals,
-                algorithms, and IT operations. I care about writing code that teams can understand,
-                test, and scale.
-              </p>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat class="surface-card services-card">
-            <q-card-section>
-              <h3 class="card-title">What I can help with</h3>
-              <q-list separator>
-                <q-item v-for="service in serviceItems" :key="service.title">
-                  <q-item-section avatar>
-                    <q-icon :name="service.icon" color="primary" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label class="service-title">{{ service.title }}</q-item-label>
-                    <q-item-label caption>{{ service.description }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-    </section>
-
-    <section id="skills" data-section class="portfolio-section">
-      <div class="section-shell">
-        <header class="section-header">
-          <p class="section-kicker">Skills</p>
-          <h2 class="section-title">Technical toolbox</h2>
-        </header>
-
-        <q-tabs
-          v-model="activeSkillCategory"
-          dense
-          no-caps
-          inline-label
-          class="skill-tabs"
-          active-color="primary"
-          indicator-color="primary"
-          outside-arrows
-          mobile-arrows
-        >
-          <q-tab
-            v-for="category in skillCategories"
-            :key="category.id"
-            :name="category.id"
-            :icon="category.icon"
-            :label="category.label"
-          />
-        </q-tabs>
-
-        <div class="skills-grid">
-          <q-card
-            v-for="skill in filteredSkills"
-            :key="skill.name"
-            flat
-            class="surface-card skill-card"
-          >
-            <q-card-section>
-              <div class="skill-row">
-                <p class="skill-name">{{ skill.name }}</p>
-                <p class="skill-level">{{ skill.level }}%</p>
-              </div>
-              <q-linear-progress rounded size="9px" :value="skill.level / 100" color="primary" />
-              <p class="skill-note">{{ skill.note }}</p>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-    </section>
-
-    <section id="experience" data-section class="portfolio-section">
-      <div class="section-shell">
-        <header class="section-header">
-          <p class="section-kicker">Journey</p>
-          <h2 class="section-title">Education and milestones</h2>
-        </header>
-
-        <div class="experience-grid">
-          <q-card flat class="surface-card timeline-card">
-            <q-card-section>
-              <q-timeline color="primary">
-                <q-timeline-entry
-                  v-for="item in timelineItems"
-                  :key="item.title"
-                  :title="item.title"
-                  :subtitle="item.period"
-                >
-                  <p class="timeline-org">{{ item.organization }}</p>
-                  <p class="timeline-text">{{ item.description }}</p>
-                </q-timeline-entry>
-              </q-timeline>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-    </section>
-
-    <section id="projects" data-section class="portfolio-section">
-      <div class="section-shell">
-        <header class="section-header">
-          <p class="section-kicker">Portfolio</p>
-          <h2 class="section-title">Selected projects</h2>
-        </header>
-
-        <div class="project-controls">
-          <div class="project-filters">
-            <q-chip
-              v-for="filter in projectFilters"
-              :key="filter.id"
-              clickable
-              square
-              class="filter-chip"
-              :class="{ 'filter-chip--active': activeProjectFilter === filter.id }"
-              @click="activeProjectFilter = filter.id"
-            >
-              {{ filter.label }}
-            </q-chip>
+        <aside class="hero-signals" aria-label="Profile highlights">
+          <div v-for="signal in heroSignals" :key="signal.label" class="hero-signal">
+            <span>{{ signal.label }}</span>
+            <strong>{{ signal.value }}</strong>
           </div>
+        </aside>
+      </div>
 
-          <q-input
-            v-model="projectSearch"
-            dense
-            outlined
-            clearable
-            debounce="250"
-            label="Search project, stack or keyword"
-            class="project-search"
-            color="primary"
-          >
-            <template #prepend>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-        </div>
+      <div class="section-shell hero-footer">
+        <a href="#projects" class="scroll-cue" @click.prevent="scrollTo('projects')">
+          <span>Explore</span>
+          <q-icon name="keyboard_arrow_down" size="20px" />
+        </a>
+      </div>
+    </section>
 
-        <div class="projects-grid">
-          <q-card
-            v-for="project in filteredProjects"
+    <section id="projects" data-section class="portfolio-section" aria-labelledby="projects-title">
+      <div class="section-shell">
+        <header class="section-header">
+          <p class="section-kicker">Selected projects</p>
+        </header>
+
+        <div class="projects-list">
+          <article
+            v-for="(project, index) in featuredProjects"
             :key="project.title"
-            flat
-            class="surface-card project-card"
+            class="project-row"
           >
-            <div class="project-ribbon" :class="`project-ribbon--${project.category}`" />
+            <span class="project-index">{{ formatIndex(index) }}</span>
 
-            <q-card-section>
-              <div class="project-head">
-                <p class="project-category">{{ categoryLabel(project.category) }}</p>
-                <q-badge color="secondary" text-color="white" outline>{{ project.status }}</q-badge>
-              </div>
-
+            <div class="project-main">
+              <p class="project-meta">{{ project.category }} / {{ project.status }}</p>
               <h3 class="project-title">{{ project.title }}</h3>
               <p class="project-summary">{{ project.summary }}</p>
 
-              <div class="project-stack">
-                <q-chip
-                  v-for="tech in project.stack"
-                  :key="`${project.title}-${tech}`"
-                  dense
-                  square
-                  class="stack-chip"
-                >
+              <div class="project-stack" aria-label="Project stack">
+                <span v-for="tech in project.stack" :key="`${project.title}-${tech}`">
                   {{ tech }}
-                </q-chip>
+                </span>
               </div>
-            </q-card-section>
+            </div>
 
-            <q-separator />
-
-            <q-card-actions class="project-actions">
+            <div class="project-actions">
               <q-btn
                 v-if="project.live || project.liveRoute"
                 flat
-                no-caps
+                round
                 color="primary"
                 icon="open_in_new"
-                :label="project.liveLabel || 'Live'"
+                :aria-label="`Open ${project.title}`"
                 :href="project.live || undefined"
                 :to="project.liveRoute || undefined"
                 :target="project.live ? '_blank' : undefined"
@@ -285,122 +100,95 @@
               />
               <q-btn
                 flat
-                no-caps
+                round
                 color="primary"
                 icon="code"
-                label="Source"
+                :aria-label="`Open ${project.title} source code`"
                 :href="project.repo"
                 target="_blank"
                 rel="noopener"
               />
-            </q-card-actions>
-          </q-card>
+            </div>
+          </article>
         </div>
-
-        <p v-if="!filteredProjects.length" class="empty-state">
-          No project matches this filter yet. Try changing category or search keyword.
-        </p>
       </div>
     </section>
 
-    <section id="contact" data-section class="portfolio-section">
+    <section id="stack" data-section class="portfolio-section" aria-labelledby="stack-title">
       <div class="section-shell">
         <header class="section-header">
-          <p class="section-kicker">Contact</p>
-          <h2 class="section-title">Don't be scared to reach out.</h2>
+          <p class="section-kicker">Stack</p>
         </header>
 
-        <div class="contact-grid">
-          <q-card flat class="surface-card contact-card">
-            <q-card-section>
-              <h3 class="card-title">Usefuls channels</h3>
+        <article v-for="group in stackGroups" :key="group.title" class="stack-group">
+          <q-icon :name="group.icon" size="22px" />
+          <h3>{{ group.title }}</h3>
+          <p>{{ group.description }}</p>
+          <ul>
+            <li v-for="item in group.items" :key="item">{{ item }}</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-              <div class="contact-list">
-                <a class="contact-item" href="mailto:cristhian.peverelli@gmail.com">
-                  <q-icon name="mail" size="20px" />
-                  <span>cristhian [dot] peverelli [at] gmail [dot] com</span>
-                </a>
-                <a
-                  class="contact-item"
-                  href="https://www.linkedin.com/in/cristhian-peverelli/"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <q-icon name="work" size="20px" />
-                  <span>LinkedIn profile</span>
-                </a>
-                <a
-                  class="contact-item"
-                  href="https://github.com/CristhianPeverelli"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <q-icon name="terminal" size="20px" />
-                  <span>GitHub repositories</span>
-                </a>
-              </div>
+    <section id="journey" data-section class="portfolio-section" aria-labelledby="journey-title">
+      <div class="section-shell">
+        <header class="section-header">
+          <p class="section-kicker">Education</p>
+        </header>
 
-              <div class="contact-actions">
-                <q-btn
-                  flat
-                  no-caps
-                  color="primary"
-                  icon="content_copy"
-                  :label="emailCopied ? 'Email copied' : 'Copy email'"
-                  @click="copyEmail"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
+        <div class="journey-list">
+          <article v-for="item in journeyItems" :key="item.title" class="journey-item">
+            <span>{{ item.period }}</span>
+            <div>
+              <h3>{{ item.title }}</h3>
+              <p class="journey-place">{{ item.place }}</p>
+              <p>{{ item.description }}</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
 
-          <q-card flat class="surface-card form-card">
-            <q-card-section>
-              <h3 class="card-title">Quick message</h3>
+    <section
+      id="contact"
+      data-section
+      class="portfolio-section contact-section"
+      aria-labelledby="contact-title"
+    >
+      <div class="section-shell contact-shell">
+        <div>
+          <p class="section-kicker">Contact</p>
+          <h2 id="contact-title" class="section-title">Open to good technical conversations :)</h2>
+        </div>
 
-              <q-form class="contact-form" @submit.prevent="openMailDraft">
-                <q-input
-                  v-model="contactForm.name"
-                  dense
-                  outlined
-                  label="Your name"
-                  :rules="[requiredRule]"
-                />
-                <q-input
-                  v-model="contactForm.email"
-                  dense
-                  outlined
-                  label="Your email"
-                  :rules="[requiredRule, emailRule]"
-                />
-                <q-input
-                  v-model="contactForm.subject"
-                  dense
-                  outlined
-                  label="Subject"
-                  :rules="[requiredRule]"
-                />
-                <q-input
-                  v-model="contactForm.message"
-                  type="textarea"
-                  autogrow
-                  outlined
-                  label="Message"
-                  :rules="[requiredRule]"
-                />
-
-                <div class="form-actions">
-                  <q-btn
-                    type="submit"
-                    no-caps
-                    unelevated
-                    color="primary"
-                    :label="submitButtonLabel"
-                  />
-                  <q-btn flat no-caps color="primary" label="Reset" @click="resetContactForm" />
-                </div>
-              </q-form>
-            </q-card-section>
-          </q-card>
+        <div class="contact-actions">
+          <a class="contact-link" href="mailto:cristhian.peverelli@gmail.com">
+            <q-icon name="mail" size="20px" />
+            <span>Email</span>
+          </a>
+          <a
+            class="contact-link"
+            href="https://www.linkedin.com/in/cristhian-peverelli/"
+            target="_blank"
+            rel="noopener"
+          >
+            <q-icon name="business_center" size="20px" />
+            <span>LinkedIn</span>
+          </a>
+          <a
+            class="contact-link"
+            href="https://github.com/CristhianPeverelli"
+            target="_blank"
+            rel="noopener"
+          >
+            <q-icon name="terminal" size="20px" />
+            <span>GitHub</span>
+          </a>
+          <button type="button" class="contact-link contact-link--button" @click="copyEmail">
+            <q-icon name="content_copy" size="20px" />
+            <span>{{ emailCopied ? 'Copied' : 'Copy email' }}</span>
+          </button>
         </div>
       </div>
     </section>
@@ -408,387 +196,168 @@
     <footer class="portfolio-footer">
       <div class="section-shell footer-content">
         <p>&copy; {{ currentYear }} Cristhian Peverelli</p>
-        <p>Built with Vue 3 and Quasar</p>
+        <p>Vue 3 / Quasar / interactive canvas</p>
       </div>
     </footer>
 
-    <q-dialog v-model="gamePanelOpen">
-      <q-card flat class="surface-card games-panel">
-        <q-card-section class="games-panel__head">
-          <p class="games-panel__kicker">Playable games</p>
-          <q-btn flat class="games-panel__close-btn" :icon="'close'" @click="toggleGamePanel" />
-          <p class="games-panel__text">
-            A catalog of some browser-ready games I've developed. You can try them out directly or
-            check their repositories for code reference.
-          </p>
-        </q-card-section>
-
-        <q-card-section class="games-panel__body">
-          <div class="games-panel__grid">
-            <q-card
-              v-for="game in playableGames"
-              :key="game.id"
-              flat
-              class="games-panel-card"
-              :class="`games-panel-card--${game.theme}`"
-            >
-              <q-card-section>
-                <div class="games-panel-card__head">
-                  <p class="games-panel-card__eyebrow">{{ game.label }}</p>
-                  <q-badge color="secondary" text-color="white" outline>{{ game.badge }}</q-badge>
-                </div>
-
-                <h4 class="games-panel-card__title">{{ game.title }}</h4>
-                <p class="games-panel-card__description">{{ game.description }}</p>
-
-                <div class="games-panel-card__actions">
-                  <q-btn
-                    unelevated
-                    no-caps
-                    color="primary"
-                    :icon="game.actionIcon"
-                    :label="game.actionLabel"
-                    @click="selectGame(game)"
-                  />
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <q-page-sticky v-show="showBackToTop" position="bottom-right" :offset="[18, 18]">
+    <q-page-sticky
+      v-show="showBackToTop"
+      position="bottom-right"
+      :offset="[18, 18]"
+      class="back-to-top-sticky"
+    >
       <q-btn
         round
         unelevated
         color="primary"
         icon="north"
         aria-label="Back to top"
-        @click="scrollTo('home')"
+        @click.stop.prevent="scrollToTop"
       />
     </q-page-sticky>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useMeta } from 'quasar'
-import { useRouter } from 'vue-router'
 import InteractiveIcosahedron from 'src/components/InteractiveIcosahedron.vue'
-import profilePhoto from 'src/assets/profile-photo.jpg'
-
-const router = useRouter()
 
 useMeta(() => ({
-  title: 'Cristhian Peverelli',
+  title: 'Cristhian Peverelli - Portfolio',
   meta: {
     description: {
       name: 'description',
       content:
-        'Portfolio of Cristhian Peverelli, software developer and IT technician focused on robust and user-oriented digital products.',
+        'Portfolio of Cristhian Peverelli, Computer Science graduate focused on web development, IT systems, cybersecurity and practical software projects.',
     },
     keywords: {
       name: 'keywords',
-      content: 'Cristhian Peverelli, portfolio, software developer, Vue, Quasar, IT technician',
+      content:
+        'Cristhian Peverelli, portfolio, software developer, Vue, Quasar, IT, cybersecurity, web development',
     },
   },
 }))
 
-const serviceItems = [
-  {
-    icon: 'web',
-    title: 'Web Application Development',
-    description: 'Vue and Quasar interfaces with responsive design and clear user flows.',
-  },
-  {
-    icon: 'settings_suggest',
-    title: 'Technical Problem Solving',
-    description: 'Debugging, optimization, and structured refactoring for existing codebases.',
-  },
-  {
-    icon: 'memory',
-    title: 'Computer Science Foundations',
-    description: 'Algorithms, data structures, and rigorous implementation practices.',
-  },
+const heroSignals = [
+  { label: 'Focus', value: 'Web, IT, Security' },
+  { label: 'Base', value: 'Italy' },
+  { label: 'Mode', value: 'Build, test, iterate' },
 ]
 
-const skillCategories = [
-  { id: 'all', label: 'All', icon: 'apps' },
-  { id: 'frontend', label: 'Frontend', icon: 'design_services' },
-  { id: 'backend', label: 'Backend', icon: 'dns' },
-  { id: 'languages', label: 'Languages', icon: 'code' },
-  { id: 'tools', label: 'Tools', icon: 'build' },
-]
-
-const skillItems = [
-  {
-    name: 'Vue 3 + Quasar',
-    level: 88,
-    category: 'frontend',
-    note: 'Component architecture and UI systems.',
-  },
-  {
-    name: 'HTML + SCSS',
-    level: 90,
-    category: 'frontend',
-    note: 'Semantic markup, responsive layouts, and styling.',
-  },
-  {
-    name: 'JavaScript',
-    level: 86,
-    category: 'languages',
-    note: 'Modern syntax, asynchronous flows, and tooling.',
-  },
-  {
-    name: 'C#',
-    level: 78,
-    category: 'languages',
-    note: 'Game and app scripting in Unity environments.',
-  },
-  {
-    name: 'Java',
-    level: 74,
-    category: 'languages',
-    note: 'Object-oriented design and problem solving.',
-  },
-  {
-    name: 'Golang',
-    level: 70,
-    category: 'languages',
-    note: 'Learning practical backend-oriented patterns.',
-  },
-  { name: 'SQL', level: 67, category: 'backend', note: 'Query design and database reasoning.' },
-  {
-    name: 'Git + GitHub',
-    level: 84,
-    category: 'tools',
-    note: 'Branching, repository management, and collaboration.',
-  },
-  {
-    name: 'Unity + Blender',
-    level: 76,
-    category: 'tools',
-    note: '3D game production and content integration.',
-  },
-  {
-    name: 'Linux + IT Support',
-    level: 80,
-    category: 'backend',
-    note: 'Troubleshooting and system-level diagnostics.',
-  },
-]
-
-const timelineItems = [
-  {
-    title: 'Bachelor in Computer Science',
-    period: '2021 - 2025',
-    organization: 'University of Milan "La Statale"',
-    description:
-      'Academic training in software engineering, algorithms, data management, and systems.',
-  },
-  {
-    title: 'High School CS Diploma',
-    period: '2016 - 2021',
-    organization: 'ITIS Emilio Alessandrini, Vittuone',
-    description: 'Early technical specialization in computing and IT fundamentals.',
-  },
-  {
-    title: 'Independent Project Work',
-    period: 'Ongoing',
-    organization: 'Personal portfolio and coding platforms',
-    description:
-      'Continuous practice through projects, coding challenges, and iterative improvements.',
-  },
-]
-
-const projectFilters = [
-  { id: 'all', label: 'All' },
-  { id: 'game', label: 'Game Dev' },
-  { id: 'web', label: 'Web Apps' },
-  { id: 'algorithms', label: 'Algorithms' },
-  { id: 'hardware', label: 'Hardware' },
-]
-
-const playableGames = [
-  {
-    id: 'labyrinthus',
-    title: 'Labyrinthus',
-    label: 'Dungeon crawler',
-    badge: 'Playable on site',
-    description:
-      'A pixel fantasy roguelite with procedural rooms, weapon loadouts, upgrades, and score-driven runs.',
-    actionLabel: 'Play',
-    actionIcon: 'sports_martial_arts',
-    destinationType: 'route',
-    destination: '/labyrinthus',
-    theme: 'dungeon',
-  },
-  {
-    id: 'delta-e',
-    title: 'Delta - E',
-    label: 'Color puzzle',
-    badge: 'Playable on site',
-    description:
-      'A minimalist color-memory puzzle with LCH generation and Delta E validation, fast-paced gameplay.',
-    actionLabel: 'Play',
-    actionIcon: 'color_lens',
-    destinationType: 'route',
-    destination: '/delta-e',
-    theme: 'puzzle',
-  },
-  {
-    id: 'pevefast',
-    title: 'Pevefast',
-    label: 'Arcade runner',
-    badge: 'WebGL demo',
-    description:
-      'A fast-paced 3D endless runner built in Unity, focused on speed, reflexes, and immediate browser play.',
-    actionLabel: 'Play',
-    actionIcon: 'directions_run',
-    destinationType: 'external',
-    destination: 'https://cristhianpeverelli.github.io/pevefast/',
-    theme: 'runner',
-  },
-]
-
-const projects = [
+const featuredProjects = [
   {
     title: 'Labyrinthus',
-    category: 'game',
-    status: 'My main game project',
+    category: 'Game development',
+    status: 'Main project',
     summary:
-      'A fantasy roguelite built into the portfolio with procedural rooms, selectable weapons, and run-based progression.',
-    stack: ['Vue 3', 'Quasar', 'Canvas', 'Game Engine', 'Sprite', '2025-2026'],
-    live: '',
+      'A browser dungeon crawler with procedural rooms, weapon choices, upgrades and score-driven runs.',
+    stack: ['Vue 3', 'Quasar', 'Canvas', 'Game logic'],
     liveRoute: '/labyrinthus',
-    liveLabel: 'Play now',
     repo: 'https://github.com/CristhianPeverelli/website-qsr',
   },
   {
     title: 'Delta - E',
-    category: 'game',
+    category: 'Interactive web',
     status: 'Experimental puzzle',
     summary:
-      'Minimal color-memory puzzle with perceptual LCH generation and Delta E validation through colorjs.io.',
-    stack: ['Vue 3', 'Quasar', 'colorjs.io', 'Canvas', 'SCSS', '2026'],
-    live: '',
+      'A compact color-memory game using perceptual color distance to validate choices and pace the challenge.',
+    stack: ['Vue 3', 'colorjs.io', 'SCSS', 'UX'],
     liveRoute: '/delta-e',
-    liveLabel: 'Play now',
+    repo: 'https://github.com/CristhianPeverelli/website-qsr',
+  },
+  {
+    title: 'Timer',
+    category: 'Event utility',
+    status: 'Production tool',
+    summary:
+      'A distraction-free speaker timer with fullscreen mode, visible progress, final warning and overrun count.',
+    stack: ['Vue 3', 'Quasar', 'Fullscreen API', 'UX'],
+    liveRoute: '/timer',
     repo: 'https://github.com/CristhianPeverelli/website-qsr',
   },
   {
     title: 'Pevefast',
-    category: 'game',
+    category: '3D prototype',
     status: 'Playable demo',
     summary:
-      '3D endless-runner developed in Unity and exported to WebGL for instant browser access.',
-    stack: ['Unity', 'C#', 'Blender', 'WebGL', '2019-2020'],
+      'A Unity WebGL endless runner focused on speed, immediate controls and arcade-style progression.',
+    stack: ['Unity', 'C#', 'Blender', 'WebGL'],
     live: 'https://cristhianpeverelli.github.io/pevefast/',
     repo: 'https://github.com/CristhianPeverelli/Pevefast-scripts',
   },
   {
-    title: 'Portfolio Website',
-    category: 'web',
-    status: 'In active development',
-    summary: 'Personal website focused on branding, interaction design, and practical utility.',
-    stack: ['Vue 3', 'Quasar', 'SCSS'],
-    live: '',
-    repo: 'https://github.com/CristhianPeverelli/website-qsr',
-  },
-  {
-    title: 'LeetCode Solutions',
-    category: 'algorithms',
-    status: 'Public repository',
-    summary: 'Collection of algorithmic exercises with emphasis on clean and readable approaches.',
-    stack: ['Golang', 'Problem Solving'],
-    live: '',
-    repo: 'https://github.com/CristhianPeverelli/leetcode',
-  },
-  {
-    title: 'CodeWars Kata Archive',
-    category: 'algorithms',
-    status: 'Public repository',
-    summary: 'Set of my kata solutions to train algorithmic thinking and implementation speed.',
-    stack: ['Java', 'Algorithms'],
-    live: '',
-    repo: 'https://github.com/CristhianPeverelli/Codewars-Challenge',
-  },
-  {
-    title: 'Tic-Tac-Toe Logic Circuit',
-    category: 'hardware',
-    status: 'University project',
-    summary: 'Game simulation implemented only with digital logic circuits and hardware reasoning.',
-    stack: ['Logisim', 'Digital Design', '2021'],
-    live: '',
-    repo: 'https://github.com/CristhianPeverelli/Logisim-Tris-Project',
-  },
-  {
-    title: 'Pevefast Scripts',
-    category: 'game',
-    status: 'Code reference',
+    title: 'Algorithm archive',
+    category: 'Computer science',
+    status: 'Practice repository',
     summary:
-      'Detailed script repository used for gameplay systems and legacy experiments on Pevefast.',
-    stack: ['C#', 'Unity', '2019-2020'],
-    live: '',
-    repo: 'https://github.com/CristhianPeverelli/Pevefast-scripts',
+      'Readable solutions and exercises used to train data structures, reasoning and implementation discipline.',
+    stack: ['Golang', 'Java', 'Algorithms'],
+    repo: 'https://github.com/CristhianPeverelli/leetcode',
   },
 ]
 
-const categoryLabels = {
-  web: 'Web Application',
-  game: 'Game Development',
-  algorithms: 'Algorithm Practice',
-  hardware: 'Hardware Logic',
-}
+const stackGroups = [
+  {
+    title: 'Frontend',
+    icon: 'design_services',
+    description:
+      'Interfaces with clear hierarchy, responsive behavior and maintainable components.',
+    items: ['Vue 3', 'Quasar', 'JavaScript', 'HTML', 'SCSS'],
+  },
+  {
+    title: 'Backend and data',
+    icon: 'dns',
+    description: 'Core programming and data reasoning for robust application logic.',
+    items: ['Java', 'Golang', 'SQL', 'REST fundamentals'],
+  },
+  {
+    title: 'Systems and security',
+    icon: 'shield',
+    description:
+      'A practical interest in diagnostics, Linux environments and security-aware choices.',
+    items: ['Linux', 'IT support', 'Networking basics', 'Cybersecurity learning'],
+  },
+  {
+    title: 'Creative tech',
+    icon: 'view_in_ar',
+    description:
+      'Interactive prototypes, game systems and visual experiments with technical constraints.',
+    items: ['Canvas', 'Unity', 'C#', 'Blender'],
+  },
+]
 
-const activeSkillCategory = ref('all')
-const activeProjectFilter = ref('all')
-const projectSearch = ref('')
+const journeyItems = [
+  {
+    period: '2021 - 2025',
+    title: 'Bachelor in Computer Science',
+    place: 'University of Milan "La Statale"',
+    description:
+      'Academic work across software engineering, algorithms, databases and system fundamentals.',
+  },
+  {
+    period: '2016 - 2021',
+    title: 'Computer Science diploma',
+    place: 'ITIS Emilio Alessandrini, Vittuone',
+    description: 'Early technical path through programming, networks and IT foundations.',
+  },
+  {
+    period: 'Ongoing',
+    title: 'Independent project work',
+    place: 'Personal projects and public repositories',
+    description:
+      'Continuous practice through browser games, portfolio systems, coding challenges and experiments.',
+  },
+]
+
 const emailCopied = ref(false)
-const submitButtonLabel = ref('Open email draft')
 const scrollPosition = ref(0)
-const gamePanelOpen = ref(false)
-
-const contactForm = reactive({
-  name: '',
-  email: '',
-  subject: 'Hi! I would like to get in touch with you',
-  message: '',
-})
-
-const requiredRule = (value) => Boolean(value && String(value).trim()) || 'This field is required'
-const emailRule = (value) => /.+@.+\..+/.test(value) || 'Enter a valid email address'
-
 const currentYear = new Date().getFullYear()
-
-const filteredSkills = computed(() => {
-  const category = activeSkillCategory.value
-  if (category === 'all') {
-    return skillItems
-  }
-  return skillItems.filter((item) => item.category === category)
-})
-
-const filteredProjects = computed(() => {
-  const query = projectSearch.value.trim().toLowerCase()
-
-  return projects.filter((project) => {
-    const categoryMatch =
-      activeProjectFilter.value === 'all' || project.category === activeProjectFilter.value
-
-    const searchableText =
-      `${project.title} ${project.summary} ${project.stack.join(' ')}`.toLowerCase()
-    const queryMatch = !query || searchableText.includes(query)
-
-    return categoryMatch && queryMatch
-  })
-})
 
 const showBackToTop = computed(() => scrollPosition.value > 760)
 
-function categoryLabel(category) {
-  return categoryLabels[category] || 'Project'
+function formatIndex(index) {
+  return String(index + 1).padStart(2, '0')
 }
 
 function scrollTo(id) {
@@ -798,23 +367,20 @@ function scrollTo(id) {
   }
 }
 
-function toggleGamePanel() {
-  gamePanelOpen.value = !gamePanelOpen.value
-}
+function scrollToTop() {
+  const scrollOptions = { top: 0, left: 0, behavior: 'smooth' }
+  const scrollTargets = [document.scrollingElement, document.documentElement, document.body]
 
-function selectGame(game) {
-  gamePanelOpen.value = false
+  window.scrollTo(scrollOptions)
+  scrollTargets.forEach((target) => {
+    if (target?.scrollTo) {
+      target.scrollTo(scrollOptions)
+    } else if (target) {
+      target.scrollTop = 0
+    }
+  })
 
-  if (game.destinationType === 'route') {
-    router.push(game.destination)
-    return
-  }
-
-  window.open(game.destination, '_blank', 'noopener')
-}
-
-function onWindowScroll() {
-  scrollPosition.value = window.scrollY || 0
+  scrollPosition.value = 0
 }
 
 async function copyEmail() {
@@ -822,10 +388,6 @@ async function copyEmail() {
 
   try {
     await navigator.clipboard.writeText(email)
-    emailCopied.value = true
-    window.setTimeout(() => {
-      emailCopied.value = false
-    }, 2000)
   } catch {
     const input = document.createElement('input')
     input.value = email
@@ -833,38 +395,16 @@ async function copyEmail() {
     input.select()
     document.execCommand('copy')
     document.body.removeChild(input)
-
-    emailCopied.value = true
-    window.setTimeout(() => {
-      emailCopied.value = false
-    }, 2000)
   }
-}
 
-function openMailDraft() {
-  const body = [
-    `Hi Cristhian,`,
-    '',
-    contactForm.message,
-    '',
-    `Name: ${contactForm.name}`,
-    `Email: ${contactForm.email}`,
-  ].join('\n')
-
-  const mailtoLink = `mailto:cristhian.peverelli@gmail.com?subject=${encodeURIComponent(contactForm.subject)}&body=${encodeURIComponent(body)}`
-  window.location.href = mailtoLink
-
-  submitButtonLabel.value = 'Draft opened'
+  emailCopied.value = true
   window.setTimeout(() => {
-    submitButtonLabel.value = 'Open email draft'
-  }, 2000)
+    emailCopied.value = false
+  }, 1800)
 }
 
-function resetContactForm() {
-  contactForm.name = ''
-  contactForm.email = ''
-  contactForm.subject = 'Collaboration request'
-  contactForm.message = ''
+function onWindowScroll() {
+  scrollPosition.value = window.scrollY || 0
 }
 
 onMounted(() => {

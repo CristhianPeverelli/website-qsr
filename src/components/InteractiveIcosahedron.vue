@@ -1,30 +1,29 @@
 <template>
-  <div class="icosa-shell surface-card" ref="shellRef">
+  <div class="icosa-shell" ref="shellRef">
     <canvas
       ref="canvasRef"
       class="icosa-canvas"
       :class="{ 'is-dragging': isDragging }"
+      role="img"
+      tabindex="0"
+      aria-label="Interactive abstract icosahedron. Drag or touch to rotate, scroll to zoom, or roll it."
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
       @pointerleave="onPointerUp"
+      @dblclick="rollIcosahedron"
       @wheel.prevent="onWheel"
+      @keydown.space.prevent="rollIcosahedron"
+      @keydown.enter.prevent="rollIcosahedron"
     />
 
-    <div class="icosa-controls">
+    <div class="icosa-hud" aria-live="polite">
       <button type="button" class="roll-btn" :disabled="isRolling" @click="rollIcosahedron">
-        {{ isRolling ? 'Rolling...' : 'Roll d20' }}
+        <q-icon name="casino" size="16px" />
+        <span>{{ isRolling ? 'Rolling' : 'Roll' }}</span>
       </button>
-      <p class="roll-result">
-        Result:
-        <strong>{{ currentResult ?? '--' }}</strong>
-      </p>
-    </div>
-
-    <div class="icosa-overlay">
-      <p class="icosa-title">Icosahedron</p>
-      <p class="icosa-hint">Drag to rotate, scroll to zoom, click to roll.</p>
+      <p class="roll-result">{{ currentResult ? `Face ${currentResult}` : 'Drag to rotate' }}</p>
     </div>
   </div>
 </template>
@@ -130,6 +129,7 @@ const dragState = {
 let ctx = null
 let rafId = 0
 let resizeObserver = null
+let prefersReducedMotion = false
 
 const cameraDistance = 3.2
 const rollState = {
@@ -272,14 +272,17 @@ function drawScene() {
     .forEach((faceData) => {
       const { projectedA, projectedB, projectedC, depth } = faceData
       const depthNormalized = (depth + 1) / 2
-      const alpha = 0.05 + depthNormalized * 0.16
+      const isHighlighted = highlightedFace.value === faceData.index
+      const alpha = isHighlighted ? 0.24 : 0.035 + depthNormalized * 0.11
 
       ctx.beginPath()
       ctx.moveTo(projectedA.x, projectedA.y)
       ctx.lineTo(projectedB.x, projectedB.y)
       ctx.lineTo(projectedC.x, projectedC.y)
       ctx.closePath()
-      ctx.fillStyle = `rgba(56, 189, 248, ${alpha.toFixed(3)})`
+      ctx.fillStyle = isHighlighted
+        ? `rgba(221, 255, 112, ${alpha.toFixed(3)})`
+        : `rgba(120, 212, 220, ${alpha.toFixed(3)})`
       ctx.fill()
     })
 
@@ -293,39 +296,17 @@ function drawScene() {
 
   sortedEdges.forEach(({ a, b, depth }) => {
     const depthNormalized = (depth + 1) / 2
-    const alpha = 0.3 + depthNormalized * 0.6
-    const width = 0.7 + depthNormalized * 1.7
+    const alpha = 0.22 + depthNormalized * 0.55
+    const width = 0.65 + depthNormalized * 1.55
 
     ctx.beginPath()
     ctx.moveTo(projectedVertices[a].x, projectedVertices[a].y)
     ctx.lineTo(projectedVertices[b].x, projectedVertices[b].y)
-    ctx.strokeStyle = `rgba(125, 211, 252, ${alpha.toFixed(3)})`
+    ctx.strokeStyle = `rgba(202, 243, 211, ${alpha.toFixed(3)})`
     ctx.lineWidth = width
-    ctx.shadowBlur = 10
-    ctx.shadowColor = 'rgba(56, 189, 248, 0.45)'
+    ctx.shadowBlur = 14
+    ctx.shadowColor = 'rgba(128, 221, 205, 0.24)'
     ctx.stroke()
-  })
-
-  ctx.shadowBlur = 0
-
-  const visibleFaces = faceRenderData
-    .filter((faceData) => faceData.visible)
-    .sort((a, b) => a.depth - b.depth)
-
-  visibleFaces.forEach((faceData) => {
-    const numberSize = Math.max(12, Math.min(24, 14 + ((faceData.depth + 1) / 2) * 8))
-    const isHighlighted = highlightedFace.value === faceData.index
-
-    ctx.font = `700 ${numberSize.toFixed(0)}px "Space Grotesk", "Segoe UI", sans-serif`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.lineWidth = 2.5
-    ctx.strokeStyle = isHighlighted ? 'rgba(17, 24, 39, 0.9)' : 'rgba(7, 23, 42, 0.7)'
-    ctx.fillStyle = isHighlighted ? 'rgba(250, 204, 21, 0.98)' : 'rgba(241, 245, 249, 0.9)'
-    ctx.shadowBlur = isHighlighted ? 14 : 0
-    ctx.shadowColor = isHighlighted ? 'rgba(250, 204, 21, 0.55)' : 'transparent'
-    ctx.strokeText(String(faceData.value), faceData.centroid2d.x, faceData.centroid2d.y)
-    ctx.fillText(String(faceData.value), faceData.centroid2d.x, faceData.centroid2d.y)
   })
 
   ctx.shadowBlur = 0
@@ -368,8 +349,10 @@ function tick(now = performance.now()) {
         resolveFaceValueFromCurrentRotation()
       }
     } else {
-      motion.rotationY += 0.0064
-      motion.rotationZ += 0.0012
+      if (!prefersReducedMotion) {
+        motion.rotationY += 0.0048
+        motion.rotationZ += 0.001
+      }
       motion.rotationX += motion.velocityX
       motion.rotationY += motion.velocityY
       motion.rotationZ += motion.velocityZ
@@ -395,7 +378,7 @@ function resizeCanvas() {
   state.height = rect.height
   state.centerX = rect.width / 2
   state.centerY = rect.height / 2
-  state.scale = Math.min(rect.width, rect.height) * 0.27
+  state.scale = Math.min(rect.width, rect.height) * 0.4
 
   canvasRef.value.width = Math.max(1, Math.floor(rect.width * dpr))
   canvasRef.value.height = Math.max(1, Math.floor(rect.height * dpr))
@@ -481,6 +464,7 @@ onMounted(() => {
     return
   }
 
+  prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false
   resizeCanvas()
   tick()
 

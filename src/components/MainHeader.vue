@@ -3,10 +3,16 @@
     <div class="header-progress" :style="{ transform: `scaleX(${scrollProgress})` }" />
 
     <q-toolbar class="main-toolbar q-px-md q-px-lg-xl">
-      <q-btn flat no-caps class="brand-btn" aria-label="Go to home section" @click="goToSection('home')">
+      <q-btn
+        flat
+        no-caps
+        class="brand-btn"
+        aria-label="Go to home section"
+        @click="goToSection('home')"
+      >
         <div class="brand-copy">
           <span class="brand-name">Cristhian Peverelli</span>
-          <span class="brand-tag">Software Developer</span>
+          <span class="brand-tag">Web / IT / Security</span>
         </div>
       </q-btn>
 
@@ -45,7 +51,7 @@
           no-caps
           color="primary"
           class="gt-xs hire-btn"
-          label="Let's Work Together"
+          label="Contact"
           @click="goToSection('contact')"
         />
 
@@ -55,7 +61,7 @@
           round
           icon="menu"
           aria-label="Open navigation"
-          class="lt-md"
+          class="lt-md header-menu-btn"
           @click="mobileMenu = true"
         />
 
@@ -69,6 +75,30 @@
         />
       </div>
     </q-toolbar>
+
+    <div class="mobile-header-actions">
+      <button type="button" class="mobile-icon-btn" aria-label="Toggle theme" @click="toggleTheme">
+        <q-icon :name="isDark ? 'light_mode' : 'dark_mode'" size="22px" />
+      </button>
+      <button
+        v-if="isHome"
+        type="button"
+        class="mobile-icon-btn"
+        aria-label="Open navigation"
+        @click="mobileMenu = true"
+      >
+        <q-icon name="menu" size="24px" />
+      </button>
+      <button
+        v-else
+        type="button"
+        class="mobile-icon-btn mobile-icon-btn--wide"
+        @click="goToSection(returnSectionId)"
+      >
+        <q-icon name="arrow_back" size="20px" />
+        <span>Back</span>
+      </button>
+    </div>
   </q-header>
 
   <q-drawer
@@ -81,7 +111,13 @@
   >
     <q-list padding>
       <q-item-label header class="mobile-nav__title">Navigate</q-item-label>
-      <q-item v-for="link in sectionLinks" :key="link.id" clickable v-ripple @click="goToSection(link.id)">
+      <q-item
+        v-for="link in sectionLinks"
+        :key="link.id"
+        clickable
+        v-ripple
+        @click="goToSection(link.id)"
+      >
         <q-item-section>{{ link.label }}</q-item-section>
       </q-item>
     </q-list>
@@ -99,10 +135,9 @@ const $q = useQuasar()
 
 const sectionLinks = [
   { id: 'home', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'experience', label: 'Experience' },
   { id: 'projects', label: 'Projects' },
+  { id: 'stack', label: 'Stack' },
+  { id: 'journey', label: 'Journey' },
   { id: 'contact', label: 'Contact' },
 ]
 
@@ -116,9 +151,26 @@ let observer = null
 
 const isHome = computed(() => route.path === '/')
 const isDeltaE = computed(() => route.path === '/delta-e')
-const currentPageLabel = computed(() => (isDeltaE.value ? 'Delta - E' : 'Portfolio'))
-const returnSectionId = computed(() => (isDeltaE.value ? 'projects' : 'home'))
-const backButtonLabel = computed(() => (isDeltaE.value ? 'Back to projects' : 'Back to portfolio'))
+const isTimer = computed(() => route.path === '/timer')
+const isLabyrinthus = computed(() => route.path === '/labyrinthus')
+const currentPageLabel = computed(() => {
+  if (isDeltaE.value) {
+    return 'Delta - E'
+  }
+  if (isTimer.value) {
+    return 'Timer'
+  }
+  if (isLabyrinthus.value) {
+    return 'Labyrinthus'
+  }
+  return 'Portfolio'
+})
+const returnSectionId = computed(() =>
+  isDeltaE.value || isTimer.value || isLabyrinthus.value ? 'projects' : 'home',
+)
+const backButtonLabel = computed(() =>
+  isDeltaE.value || isTimer.value || isLabyrinthus.value ? 'Back to projects' : 'Back to portfolio',
+)
 
 function applyTheme(theme) {
   const darkTheme = theme === 'dark'
@@ -139,8 +191,7 @@ function syncThemeFromStorage() {
     return
   }
 
-  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
-  applyTheme(prefersDark ? 'dark' : 'light')
+  applyTheme('dark')
 }
 
 function updateScrollState() {

@@ -1,215 +1,135 @@
 .hero-section {
-  min-height: calc(100vh - 76px);
-  display: flex;
-  align-items: center;
-  padding-top: clamp(12px, 1.8vw, 24px);
-  padding-bottom: clamp(40px, 5.2vw, 72px);
-}
-
-.hero-section > .section-shell {
-  width: 100%;
-}
-
-.hero-grid {
+  min-height: calc(100svh - 76px);
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 26px;
   align-items: center;
+  overflow: hidden;
+  padding-top: clamp(28px, 5vw, 72px);
+  padding-bottom: clamp(34px, 5vw, 64px);
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 34%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--bg-primary));
+}
+
+.hero-icosahedron {
+  position: absolute;
+  inset: -8% -18% -2% 34%;
+  z-index: 1;
+  opacity: 0.78;
+}
+
+.hero-shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(240px, 0.36fr);
+  gap: clamp(32px, 7vw, 108px);
+  align-items: end;
 }
 
 .hero-copy {
-  padding-top: 0;
-}
-
-.hero-intro {
-  max-width: 680px;
-  display: grid;
-  grid-template-columns: clamp(132px, 16vw, 168px) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-  margin-top: 20px;
-}
-
-.hero-portrait {
-  width: 100%;
-  align-self: start;
-  padding: 10px;
-  border-radius: 24px;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--surface-elevated), var(--surface-soft));
-}
-
-.hero-portrait__image {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  object-position: center 22%;
-  border-radius: 18px;
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+  max-width: 840px;
+  min-width: 0;
 }
 
 .hero-title {
-  font-family: var(--font-title);
-  font-size: clamp(1.95rem, 4vw, 3.3rem);
-  line-height: 1.08;
+  max-width: 920px;
   margin: 0;
+  font-family: var(--font-title);
+  font-size: 9.6rem;
+  line-height: 0.82;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.hero-role {
+  max-width: 780px;
+  margin: clamp(24px, 4vw, 42px) 0 0;
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  line-height: 1.18;
+  font-weight: 620;
+  text-wrap: balance;
 }
 
 .hero-lead {
-  margin: 0;
-  min-width: 0;
-  align-self: center;
+  max-width: 620px;
+  margin: 18px 0 0;
   color: var(--text-secondary);
-  font-size: 1.05rem;
-  line-height: 1.7;
+  font-size: 1.08rem;
+  line-height: 1.72;
+  overflow-wrap: break-word;
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 30px;
 }
 
-.pill-btn {
-  border-radius: 999px;
-  padding-inline: 10px;
-  font-weight: 700;
-}
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.quick-links {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.hero-side {
+.hero-signals {
   display: grid;
-  gap: 12px;
+  gap: 0;
+  align-self: end;
+  margin-bottom: 8px;
+  border-top: 1px solid var(--border-soft);
 }
 
-.hero-icosa-note {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.games-panel {
-  max-width: 100%;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 214, 153, 0.18);
-  background:
-    radial-gradient(circle at top left, rgba(255, 179, 71, 0.12), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(52, 211, 153, 0.1), transparent 32%),
-    linear-gradient(180deg, rgba(27, 19, 29, 0.98), rgba(15, 12, 20, 0.98));
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.32);
-}
-
-.games-panel__head {
-  padding-bottom: 8px;
-}
-
-.games-panel__kicker {
-  margin: 0;
-  color: #d7b181;
-  font-size: 2rem;
-  font-family: var(--font-pixel);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  text-align: center;
-}
-
-.games-panel__close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
-
-.games-panel__text {
-  margin: 10px 0 0;
-  color: rgba(245, 235, 224, 0.8);
-  line-height: 1.7;
-}
-
-.games-panel__body {
-  padding-top: 0;
-}
-
-.games-panel__grid {
+.hero-signal {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.games-panel-card {
-  border-radius: 20px;
-  border: 1px solid rgba(255, 223, 186, 0.12);
-  background: linear-gradient(180deg, rgba(53, 36, 43, 0.7), rgba(24, 18, 27, 0.86));
-  min-height: 100%;
-}
-
-.games-panel-card--dungeon {
-  box-shadow: inset 0 0 0 1px rgba(255, 179, 71, 0.08);
-}
-
-.games-panel-card--runner {
-  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.08);
-}
-
-.games-panel-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.games-panel-card__eyebrow {
-  margin: 0;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
-}
-
-.games-panel-card__title {
-  margin: 12px 0 0;
-  color: #fff1da;
-  font-family: var(--font-title);
-  font-size: 1.22rem;
-}
-
-.games-panel-card__description {
-  margin: 10px 0 0;
-  color: rgba(245, 235, 224, 0.82);
-  line-height: 1.65;
-  min-height: 84px;
-}
-
-.games-panel-card__chips {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-soft);
 }
 
-.games-panel-card__chip {
-  background: rgba(255, 245, 230, 0.06);
-  border: 1px solid rgba(255, 223, 186, 0.12);
-  color: #f0dcc0;
+.hero-signal span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
-.games-panel-card__actions {
+.hero-signal strong {
+  color: var(--text-primary);
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+.hero-footer {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  z-index: 3;
   display: flex;
   justify-content: flex-start;
-  margin-top: 18px;
+}
+
+.scroll-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 760;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.scroll-cue:hover {
+  color: var(--accent-1);
+  transform: translateY(2px);
 }
