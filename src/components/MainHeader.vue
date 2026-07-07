@@ -153,6 +153,7 @@ const isHome = computed(() => route.path === '/')
 const isDeltaE = computed(() => route.path === '/delta-e')
 const isTimer = computed(() => route.path === '/timer')
 const isLabyrinthus = computed(() => route.path === '/labyrinthus')
+const isPrivacy = computed(() => route.path === '/privacy')
 const currentPageLabel = computed(() => {
   if (isDeltaE.value) {
     return 'Delta - E'
@@ -162,6 +163,9 @@ const currentPageLabel = computed(() => {
   }
   if (isLabyrinthus.value) {
     return 'Labyrinthus'
+  }
+  if (isPrivacy.value) {
+    return 'Privacy'
   }
   return 'Portfolio'
 })

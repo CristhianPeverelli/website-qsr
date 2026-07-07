@@ -196,7 +196,10 @@
     <footer class="portfolio-footer">
       <div class="section-shell footer-content">
         <p>&copy; {{ currentYear }} Cristhian Peverelli</p>
-        <p>Vue 3 / Quasar / interactive canvas</p>
+        <div class="footer-links" aria-label="Footer links">
+          <router-link to="/privacy">Privacy &amp; cookies</router-link>
+          <span>Vue 3 / Quasar / interactive canvas</span>
+        </div>
       </div>
     </footer>
 

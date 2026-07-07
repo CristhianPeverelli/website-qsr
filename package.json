@@ -11,9 +11,9 @@
     "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
-    "build": "quasar build",
+    "build": "quasar build && node scripts/copy-spa-routes.mjs",
     "postinstall": "quasar prepare",
-    "deploy": "quasar build && npx gh-pages -d dist/spa --dotfiles -x"
+    "deploy": "npm run build && npx gh-pages -d dist/spa --dotfiles -x"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-vue": "^0.8.1",

@@ -210,10 +210,21 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMeta } from 'quasar'
+import { useAdConsent } from 'src/composables/useAdConsent'
 
 const STORAGE_KEY = 'portfolio-event-timer-duration'
 const DEFAULT_DURATION_SECONDS = 10 * 60
 const MAX_DURATION_SECONDS = 23 * 60 * 60 + 59 * 60 + 59
+const ADSENSE_SCRIPT = {
+  async: '',
+  src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5894415078703849',
+  crossorigin: 'anonymous',
+  'data-privacy-treatments': 'disablePersonalization',
+}
+const ADSENSE_NON_PERSONALIZED_SCRIPT =
+  '(adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=1;'
+
+const { advertisingConsent } = useAdConsent()
 
 useMeta(() => ({
   title: 'Timer | Cristhian Peverelli',
@@ -224,13 +235,14 @@ useMeta(() => ({
         'Timer web pulito per eventi, talk e speaker, con progress bar, soglia finale in rosso e conteggio del tempo extra.',
     },
   },
-  script: {
-    adsense: {
-      async: '',
-      src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5894415078703849',
-      crossorigin: 'anonymous',
-    },
-  },
+  script: advertisingConsent.value
+    ? {
+        adsenseNonPersonalized: {
+          innerHTML: ADSENSE_NON_PERSONALIZED_SCRIPT,
+        },
+        adsense: ADSENSE_SCRIPT,
+      }
+    : {},
 }))
 
 const presets = [

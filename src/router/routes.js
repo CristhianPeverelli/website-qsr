@@ -7,6 +7,7 @@ const routes = [
       { path: 'delta-e', component: () => import('pages/DeltaEPage.vue') },
       { path: 'timer', component: () => import('pages/TimerPage.vue') },
       { path: 'labyrinthus', component: () => import('pages/LabyrinthusPage.vue') },
+      { path: 'privacy', component: () => import('pages/PrivacyPage.vue') },
       { path: 'my-last-work', redirect: '/labyrinthus' },
     ],
   },

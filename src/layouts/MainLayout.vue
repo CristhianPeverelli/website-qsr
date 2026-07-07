@@ -8,10 +8,12 @@
         </transition>
       </router-view>
     </q-page-container>
+    <AdConsentBanner />
   </q-layout>
 </template>
 
 <script setup>
+import AdConsentBanner from 'components/AdConsentBanner.vue'
 import MainHeader from 'components/MainHeader.vue'
 </script>
 
