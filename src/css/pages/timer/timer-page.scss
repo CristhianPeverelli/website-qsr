@@ -119,7 +119,7 @@ body.body--light .timer-setup {
   min-height: 640px;
   padding: clamp(22px, 3.2vw, 38px);
   display: grid;
-  grid-template-rows: auto 1fr auto auto auto;
+  grid-template-rows: auto 1fr auto auto auto auto;
   gap: 18px;
 }
 
@@ -192,15 +192,11 @@ body.body--light .timer-setup {
 }
 
 .timer-page--finished .timer-ring {
-  animation: timer-finished-pulse 0.82s ease-in-out infinite;
+  animation: timer-finished-pulse 1.35s ease-in-out infinite;
 }
 
-.timer-page--finished .timer-display {
-  animation: timer-overrun-display-pulse 0.82s ease-in-out infinite;
-}
-
-.timer-page--finished .progress-track {
-  animation: timer-overrun-track-pulse 0.82s ease-in-out infinite;
+.timer-page--finished .timer-stage {
+  animation: timer-overrun-border-pulse 1.35s ease-in-out infinite;
 }
 
 .timer-display-wrap {
@@ -232,6 +228,13 @@ body.body--light .timer-display-wrap {
   line-height: 0.88;
   text-align: center;
   white-space: nowrap;
+}
+
+.timer-page--finished .timer-display {
+  color: var(--timer-danger);
+  text-shadow:
+    0 0 18px rgba(255, 77, 87, 0.36),
+    0 18px 60px rgba(0, 0, 0, 0.28);
 }
 
 .timer-prefix {
@@ -298,10 +301,15 @@ body.body--light .timer-display-wrap {
   gap: 10px;
 }
 
+.fullscreen-adjustments {
+  display: none;
+}
+
 .main-action,
 .secondary-action,
 .preset-btn,
-.adjust-btn {
+.adjust-btn,
+.fullscreen-adjust-btn {
   min-height: 44px;
   border-radius: 8px;
 }
@@ -376,6 +384,13 @@ body.body--light .timer-display-wrap {
   background: var(--surface-soft);
 }
 
+.fullscreen-adjust-btn {
+  color: var(--text-primary);
+  border: 1px solid var(--timer-border);
+  background: rgba(233, 242, 224, 0.075);
+  backdrop-filter: blur(12px);
+}
+
 .timer-page--fullscreen,
 .timer-page:fullscreen {
   min-height: 100vh;
@@ -417,15 +432,12 @@ body.body--light .timer-display-wrap {
 
 .timer-page--fullscreen .timer-stage {
   min-height: calc(100vh - 56px);
-  border: 0;
+  border: 1px solid transparent;
+  border-radius: 12px;
   background: transparent;
   box-shadow: none;
-  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto auto;
   gap: 24px;
-}
-
-.timer-page--fullscreen.timer-page--finished .timer-stage {
-  animation: timer-overrun-stage-pulse 0.82s ease-in-out infinite;
 }
 
 .timer-page--fullscreen .timer-ring {
@@ -474,6 +486,14 @@ body.body--light .timer-page--fullscreen .timer-display-wrap {
   height: 28px;
 }
 
+.timer-page--fullscreen .fullscreen-adjustments {
+  width: min(100%, 760px);
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
 @keyframes timer-finished-pulse {
   0%,
   100% {
@@ -481,57 +501,31 @@ body.body--light .timer-page--fullscreen .timer-display-wrap {
     box-shadow:
       inset 0 0 0 1px rgba(255, 255, 255, 0.08),
       0 24px 64px rgba(0, 0, 0, 0.18),
-      0 0 0 rgba(255, 77, 87, 0.1);
+      0 0 12px rgba(255, 77, 87, 0.08);
   }
 
   50% {
-    transform: scale(1.025);
+    transform: scale(1.006);
     box-shadow:
-      inset 0 0 0 4px rgba(255, 77, 87, 0.62),
-      0 28px 82px rgba(0, 0, 0, 0.24),
-      0 0 86px rgba(255, 77, 87, 0.68);
+      inset 0 0 0 2px rgba(255, 77, 87, 0.32),
+      0 24px 64px rgba(0, 0, 0, 0.18),
+      0 0 28px rgba(255, 77, 87, 0.22);
   }
 }
 
-@keyframes timer-overrun-display-pulse {
+@keyframes timer-overrun-border-pulse {
   0%,
   100% {
-    color: var(--text-primary);
-    text-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-  }
-
-  50% {
-    color: #ff4d57;
-    text-shadow:
-      0 0 18px rgba(255, 77, 87, 0.82),
-      0 0 68px rgba(255, 77, 87, 0.66),
-      0 18px 74px rgba(0, 0, 0, 0.34);
-  }
-}
-
-@keyframes timer-overrun-track-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 rgba(255, 77, 87, 0);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 77, 87, 0.1),
+      0 28px 70px rgba(0, 0, 0, 0.18);
   }
 
   50% {
     box-shadow:
-      0 0 0 2px rgba(255, 77, 87, 0.5),
-      0 0 28px rgba(255, 77, 87, 0.7);
-  }
-}
-
-@keyframes timer-overrun-stage-pulse {
-  0%,
-  100% {
-    box-shadow: inset 0 0 0 rgba(255, 77, 87, 0);
-    background: transparent;
-  }
-
-  50% {
-    box-shadow: inset 0 0 120px rgba(255, 77, 87, 0.22);
-    background: rgba(255, 77, 87, 0.055);
+      inset 0 0 0 2px rgba(255, 77, 87, 0.3),
+      0 28px 70px rgba(0, 0, 0, 0.18),
+      0 0 34px rgba(255, 77, 87, 0.16);
   }
 }
 
@@ -622,6 +616,10 @@ body.body--light .timer-page--fullscreen .timer-display-wrap {
   .timer-page--fullscreen .progress-track {
     height: 22px;
   }
+
+  .timer-page--fullscreen .fullscreen-adjustments {
+    gap: 8px;
+  }
 }
 
 @media (max-width: 460px) {
@@ -644,13 +642,15 @@ body.body--light .timer-page--fullscreen .timer-display-wrap {
   .timer-display {
     font-size: 3.35rem;
   }
+
+  .timer-page--fullscreen .fullscreen-adjustments {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .timer-page--finished .timer-ring,
-  .timer-page--finished .timer-display,
-  .timer-page--finished .progress-track,
-  .timer-page--fullscreen.timer-page--finished .timer-stage {
+  .timer-page--finished .timer-stage {
     animation: none;
   }
 

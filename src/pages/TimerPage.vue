@@ -75,6 +75,20 @@
             <span>Fine</span>
           </div>
 
+          <div class="fullscreen-adjustments" aria-label="Regolazione rapida durata">
+            <q-btn
+              v-for="adjustment in fullscreenAdjustments"
+              :key="`${adjustment.label}-${adjustment.seconds}`"
+              flat
+              no-caps
+              class="fullscreen-adjust-btn"
+              :icon="adjustment.seconds > 0 ? 'add' : 'remove'"
+              :label="adjustment.label"
+              :disable="!canAdjustDuration(adjustment.seconds)"
+              @click="adjustDuration(adjustment.seconds, { allowDuringRun: true })"
+            />
+          </div>
+
           <div class="timer-actions" aria-label="Controlli timer">
             <q-btn
               unelevated
@@ -210,6 +224,13 @@ useMeta(() => ({
         'Timer web pulito per eventi, talk e speaker, con progress bar, soglia finale in rosso e conteggio del tempo extra.',
     },
   },
+  script: {
+    adsense: {
+      async: '',
+      src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5894415078703849',
+      crossorigin: 'anonymous',
+    },
+  },
 }))
 
 const presets = [
@@ -219,6 +240,13 @@ const presets = [
   { label: '20 min', seconds: 20 * 60 },
   { label: '30 min', seconds: 30 * 60 },
   { label: '45 min', seconds: 45 * 60 },
+]
+
+const fullscreenAdjustments = [
+  { label: '5 min', seconds: -5 * 60 },
+  { label: '1 min', seconds: -60 },
+  { label: '1 min', seconds: 60 },
+  { label: '5 min', seconds: 5 * 60 },
 ]
 
 const pageRef = ref(null)
@@ -347,8 +375,8 @@ function commitFields() {
   persistDuration()
 }
 
-function setDuration(seconds) {
-  if (setupLocked.value) {
+function setDuration(seconds, options = {}) {
+  if (setupLocked.value && !options.allowDuringRun) {
     return
   }
 
@@ -357,12 +385,16 @@ function setDuration(seconds) {
   persistDuration()
 }
 
-function adjustDuration(deltaSeconds) {
-  if (setupLocked.value) {
-    return
+function canAdjustDuration(deltaSeconds) {
+  if (deltaSeconds > 0) {
+    return durationSeconds.value < MAX_DURATION_SECONDS
   }
 
-  setDuration(durationSeconds.value + deltaSeconds)
+  return durationSeconds.value + deltaSeconds >= 1
+}
+
+function adjustDuration(deltaSeconds, options = {}) {
+  setDuration(durationSeconds.value + deltaSeconds, options)
 }
 
 function formatDuration(milliseconds, rounding = 'floor') {
